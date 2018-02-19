@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>连连看</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=414, user-scalable=no, target-densitydpi=device-dpi, minimal-ui">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="browsermode" content="application">
+        <meta name="x5-page-mode" content="app">
+        <link rel="icon" href="favicon.ico" />
+        <link rel="apple-touch-icon" href="apple-touch-icon-57x57.png" />
+        <script type="text/javascript" src="audio.min.js"></script>
+        <style type="text/css">
+        * {
+            padding: 0px;
+            margin: 0px;
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
+        }
+        #container {
+            margin: 0 auto;
+            width: 414px;
+        }
+        .clickable {
+            cursor: pointer;
+        }
+        #title {
+            background: #FFFFFF;
+            position: relative;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+        }
+        #pause {
+            position: absolute;
+            right: 10px;
+            top: 0px;
+            color: #FF0000;
+            line-height: 30px;
+        }
+        .nav {
+            height: 30px;
+            background: #000000;
+        }
+        .nav li {
+            list-style-type: none;
+            margin: 0px 10px;
+            color: #FFFFFF;
+            float: left;
+            font-size: 16px;
+            line-height: 30px;
+        }
+        #progressbar {
+            background: #FFFF00;
+            height: 2px;
+        }
+        #pitch {
+            background: #FF0000;
+            height: 100%;
+        }
+        #item, #html5-canvas {
+            float: left;
+            clear: both;
+            width: 100%;
+        }
+        #item li {
+            float: right;
+        }
+        </style>
+    </head>
+    <body bgcolor="#CCCCCC">
+        <div id="container">
+            <div style="display: none;">
+                <audio src="0.mp3" preload="auto"></audio>
+                <audio src="1.mp3" preload="auto"></audio>
+                <img id="preload-img" src="p.png" />
+            </div>
+            <div id="title">
+                <span>连连看</span>
+                <span id="pause" class="clickable" onclick="app.game.hide();">暂停</span>
+            </div>
+            <div id="playground">
+                <ul id="menubar" class="nav">
+                    <li class="clickable" onclick="app.game.rank();"><span id="difficulty">初级</span></li>
+                    <li style="color: #00FFFF;">关卡：<span id="level">0</span></li>
+                    <li class="clickable" onclick="app.game.dead();">生命：<span id="life">0</span></li>
+                    <li>得分：<span id="score">0</span></li>
+                </ul>
+                <div id="progressbar">
+                    <div id="pitch"></div>
+                </div>
+                <canvas id="html5-canvas">
+                    浏览器不支持CANVAS，<a href="inde4.html">点击</a>切换至兼容版本！
+                </canvas>
+                <ul id="item" class="nav">
+                    <li class="clickable" onclick="app.game.show();">提示：<span id="tip">0</span></li>
+                    <li class="clickable" onclick="app.game.swap();">交换：<span id="swap">0</span></li>
+                </ul>
+            </div>
+            <script type="text/javascript">
+                Sprite = function(i) {
+                    this.x = this.y = this.w = this.h = 0;
+                    this.childs = [];
+                    this.scaleX = this.scaleY = 1;
+                    if (i) {
+                        this.clip = {};
+                        this.clip.x = this.clip.y = 0;
+                        this.w = i.width; this.h = i.height;
+                        this.bitmap = i;
+                    }
+                }
+                
+                Sprite.prototype.draw = function(c) {
+                    if (this.bitmap)
+                        c.drawImage(this.bitmap, this.clip.x, this.clip.y, this.w, this.h, 0, 0, this.w, this.h);
+                    var  i;
+                    for (i = 0; i < this.childs.length; i++) {
+                        c.save();
+                        c.translate(this.childs[i].x, this.childs[i].y);
+                        c.scale(this.childs[i].scaleX, this.childs[i].scaleY);
+                        this.childs[i].draw(c);
+                        c.restore();
+                    }
+                }
+                
+                Sprite.prototype.handler = function(e) {
+                    var  i;
+                    for (i = 0; i < this.childs.length; i++) {
+                        if (e.t < 3) {
+                            if (this.childs[i].x <= e.x &&e.x <= this.childs[i].x + this.childs[i].w * this.childs[i].scaleX &&
+                                this.childs[i].y <= e.y &&e.y <= this.childs[i].y + this.childs[i].h * this.childs[i].scaleY)
+                                if (this.childs[i].handler({
+                                    "t": e.t,
+                                    "x":(e.x -this.childs[i].x)/ this.childs[i].scaleX,
+                                    "y":(e.y -this.childs[i].y)/ this.childs[i].scaleY,
+                                }))
+                                    return true;
+                        } else if (this.childs[i].handler(e))
+                                    return true;
+                    }
+
+                }
+                
+                Render = function(c) {
+                    Sprite.call(this);
+                    this.canvas = c;
+                }
+                
+                Render.prototype = new Sprite();
+                
+                Render.prototype.handler = function(e) {
+                    switch (e.t) {
+                    case 4:
+                        this.w = this.canvas.width;this.h =this.canvas.height;
+                        break;
+                    }
+                    Sprite.prototype.handler.call(this, e);
+                }
+                
+                Render.prototype.invalidate = function() {
+                    var c = this.canvas.getContext("2d");
+                    c.clearRect(0, 0, this.w,  this.h);
+                    this.draw(c);
+                }
+                
+                Transform = function() {
+                }
+                
+                Transform.prototype.step = function() {
+                    var  a = this.a /Math.abs(this.a);
+                    var  b = this.b /Math.abs(this.b);
+                    
+                    if (!(this.a == 0 && this.b == 0))
+                        if (this.l.f.call(this.l.t, this.a -= a, this.b -= b))
+                            return true;
+                }
+                
+                Transform.prototype.move = function(l,a,b) {
+                    this.l = l;
+                    this.a = a;
+                    this.b = b;
+                    Transform.instance.push(this);
+                    if (!Transform.t)
+                         Transform.t = setInterval(Transform.refresht, Transform.interval);
+                }
+                
+                Transform.interval = 20;
+                
+                Transform.instance = [];
+                
+                Transform.refresht = function() {
+                    var  i;
+                    var  t;
+                    for (i = 0; i< Transform.instance.length; i++)
+                        if (Transform.instance[i]) {
+                            t = Transform.instance[i];
+                            if (Transform.instance[i].step())
+                                Transform.instance[i] = null;
+                        }
+                    if (!t) {
+                        clearInterval(Transform.t);
+                        delete Transform.t;
+                    }
+                }
+                
+                Map = function(l,i) {
+                    Sprite.call(this);
+                    this.l = l;
+                    this.bitmapResource  = i;
+                }
+                
+                Map.prototype = new Sprite();
+                
+                Map.prototype.create = function(w,h,k) {
+                    var  c = (w - 2) *(h - 2 );
+                    var  d = [];
+                    var  i;
+                    for (i = 0, j = 1, c = c % 2 ? c - 1 : c; i < c; i++) {
+                         d[i] = j;
+                        if (i % 2)
+                            j = j < k? j + 1 : 1;
+                    }
+                    for (i = 0; i < c;  i++) {
+                        var p = parseInt(Math.random() * c);
+                        var q = parseInt(Math.random() * c);
+                        var t = d[p];
+                         d[p] = d[q];
+                         d[q] = t;
+                    }
+                    
+                    this.childs = [];
+                    this.s = {
+                        "w": w,
+                        "h": h
+                    };
+                    this.w = w * this.bitmapResource.iw;
+                    this.h = h * this.bitmapResource.ih;
+                    
+                    var  j;
+                    for (i = 0; i < h; i++)
+                        for (j = 0; j < w; j++) {
+                            var s = new Sprite(this.bitmapResource.bitmap);
+                            s.w = this.bitmapResource.iw;
+                            s.h = this.bitmapResource.ih;
+                            s.x = j * s.w;
+                            s.y = i * s.h;
+                            
+                            if (i&& j && i != h - 1 && j != w - 1)
+                                s.d = d[(i - 1) * (w - 2) + j - 1];
+                            else
+                                s.d = 0;
+                            this.childs.push(s);
+                        }
+                    
+                    var  s;
+                    while(!(s = Rule.checka(this)))
+                        this.exchange();
+                    return s;
+                }
+                
+                Map.prototype.setforeground = function(x,y,v) {
+                    var s = this.childs[y * this.s.w + x];
+                    s.childs = [];
+                    
+                    if (v) {
+                        var c = new Sprite(this.bitmapResource.bitmap);
+                        
+                        c.w = this.bitmapResource.iw;
+                        c.h = this.bitmapResource.ih;
+                        c.clip.x = v % (this.bitmapResource.bitmap.naturalWidth / c.w) * c.w;
+                        c.clip.y = parseInt(v / (this.bitmapResource.bitmap.naturalWidth / c.w)) * c.h;
+                        s.childs.push(c);
+                    }
+                }
+                
+                Map.prototype.update = function() {
+                    var  i;
+                    var  j;
+                    for (i = 0; i < this.s.h; i++)
+                        for (j = 0; j < this.s.w; j++) {
+                            var s = this.childs[i * this.s.w + j];
+                            s.clip.x = s.d % (this.bitmapResource.bitmap.naturalWidth / s.w) * s.w;
+                            s.clip.y = parseInt(s.d / (this.bitmapResource.bitmap.naturalWidth / s.w)) * s.h;
+                            
+                            this.setforeground(j ,i,0);
+                        }
+                }
+                
+                Map.prototype.exchange = function() {
+                    var i;
+                    var j;
+                    for (i = 0; i < this.s.h; i++)
+                        for (j = 0; j < this.s.w; j++) {
+                            var p = i * this.s.w + j;
+                            if (this.childs[p].d) {
+                                var a = parseInt(Math.random() * (this.s.w - 2) * (this.s.h - 2));
+                                var q = (parseInt(a / (this.s.w - 2)) + 1) * this.s.w + a % (this.s.w - 2) + 1;
+                                if (this.childs[q].d) {
+                                    var t = this.childs[p].d;
+                                    this.childs[p].d = this.childs[q].d;
+                                    this.childs[q].d = t;
+                                }
+                            }
+                        }
+                }
+                
+                Map.prototype.mark = function(s) {
+                    var  i;
+                    for (i = 0; i < s.length - 1; i++)
+                        this.line(i ? s[i - 1]: undefined, s[i], s[i + 1], i < s.length - 2 ? s[i + 2] : undefined);
+                }
+                
+                Map.prototype.line = function(a,b,c,d) {
+                    if (a)
+                        this.setforeground(b.x, b.y, Map.t(a, b, c) + 45);
+                    if (d)
+                        this.setforeground(c.x, c.y, Map.t(b, c, d) + 45);
+                    var i;
+                    if (b.x != c.x)
+                        for (i = Math.min(b.x, c.x) +1 ; i < Math.max(b.x, c.x); i++)
+                            this.setforeground(i, b.y, 43);
+                    else
+                        for (i = Math.min(b.y, c.y) +1 ; i < Math.max(b.y, c.y); i++)
+                            this.setforeground(b.x, i, 44);
+                }
+                
+                Map.prototype.handler = function(e) {
+                    switch (e.t) {
+                    case 2:
+                        this.l.f.call(this.l.t, parseInt(e.x / this.childs[0].w), parseInt(e.y / this.childs[0].h));
+                    }
+                }
+                
+                Map.t = function(a,b,c) {
+                    if (a.x <  c.x) {
+                        if (a.y < c.y)
+                            return a.x < b.x ? 2 : 3;
+                        else
+                            return a.x < b.x ? 0 : 1;
+                    } else {
+                        if (a.y < c.y)
+                            return a.x > b.x ? 1 : 0;
+                        else
+                            return a.x > b.x ? 3 : 2;
+                    }
+                }
+                
+                Reference = function() {
+                    this.mask = [];
+                    this.data = [];
+                }
+                
+                Reference.prototype.add = function(p, i) {
+                    if (this.mask[i])
+                        return;
+                    else {
+                        this.mask[i] = 1;
+                        this.data.push({
+                            "p": p,
+                            "i": i
+                        });
+                    }
+                }
+                
+                Rule = {}
+                
+                Rule.checka = function(m) {
+                    var  i;
+                    var  j;
+                    for (i = 1; i < m.s.h - 1;i++)
+                        for (j = 1; j < m.s.w - 1; j++) {
+                            var s;
+                            if (s = Rule.search(m, j, i))
+                                return s;
+                        }
+                }
+                
+                Rule.checkp = function(m,a,b,c,d) {
+                    if (m.childs[b * m.s.w + a].d != m.childs[d * m.s.w + c].d)
+                        return;
+                    
+                    var v = new Reference();
+                    var p = 0;
+                    var o = 1;
+                    var i;
+                    v.add( -1, b * m.s.w+a);
+                    for (i = 0; i < 3; i++)  {
+                         if (Rule.crossp({
+                            "f": function(i) {
+                                return i == this.b * this.m.s.w + this.a;
+                            },
+                            "m": m,
+                            "a": c, 
+                            "b": d
+                         }, m, v, p))
+                            return Rule.tracep(m, v);
+                         p = o;
+                         o = v.data.length;
+                    }
+                }
+                
+                Rule.search = function(m,a,b) {
+                    if (m.childs[b * m.s.w + a].d) {
+                        var v = new Reference();
+                        var p = 0;
+                        var o = 1;
+                        var i;
+                        v.add( -1, b * m.s.w+a);
+                        for (i = 0; i < 3; i++)  {
+                             if (Rule.crossp({
+                                "f": function(i) {
+                                    return this.m.childs[i].d == this.m.childs[this.b * this.m.s.w + this.a].d && i != this.b * this.m.s.w + this.a;
+                                },
+                                "m": m,
+                                "a": a, 
+                                "b": b
+                             }, m, v, p))
+                                return Rule.tracep(m, v);
+                             p = o;
+                             o = v.data.length;
+                        }
+                    }
+                }
+                
+                Rule.crossp = function(c,m,v,p) {
+                    var  i;
+                    var  j;
+                    var  l;
+                    var  o;
+                    for (i = p, l = v.data.length; i < l; i++) {
+                         o = Rule.getpos(m, v.data[i].i);
+                        
+                         for (j = o.x - 1; j >=0;   j--) {
+                             if (m.childs[o.y * m.s.w + j].d) {
+                                 if (c.f(o.y * m.s.w + j)) {
+                                     v.add(i, o.y * m.s.w + j);
+                                     return true;
+                                 }
+                                 break;
+                             }
+                             v.add(i, o.y * m.s.w + j);
+                         }
+                         for (j = o.x + 1; j < m.s.w; j++) {
+                             if (m.childs[o.y * m.s.w + j].d) {
+                                 if (c.f(o.y * m.s.w + j)) {
+                                     v.add(i, o.y * m.s.w + j);
+                                     return true;
+                                 }
+                                 break;
+                             }
+                             v.add(i, o.y * m.s.w + j);
+                         }
+                         for (j = o.y - 1; j >=0;   j--) {
+                             if (m.childs[j * m.s.w + o.x].d) {
+                                 if (c.f(j * m.s.w + o.x)) {
+                                     v.add(i, j * m.s.w + o.x);
+                                     return true;
+                                 }
+                                 break;
+                             }
+                             v.add(i, j * m.s.w + o.x);
+                         }
+                         for (j = o.y + 1; j < m.s.h; j++) {
+                             if (m.childs[j * m.s.w + o.x].d) {
+                                 if (c.f(j * m.s.w + o.x)) {
+                                     v.add(i, j * m.s.w + o.x);
+                                     return true;
+                                 }
+                                 break;
+                             }
+                             v.add(i, j * m.s.w + o.x);
+                         }
+                    }
+                }
+                
+                Rule.getpos = function(m,i) {
+                    return {
+                        "x": i % m.s.w,
+                        "y": parseInt (i / m.s.w)
+                    };
+                }
+                
+                Rule.tracep = function(m,v) {
+                    var i = v.data.length-1;
+                    var d = [];
+                    while (v.data[i].p !=-1) {
+                        d.push({
+                            "x" : v.data[i].i % m.s.w,
+                            "y" : parseInt(v.data[i].i / m.s.w)
+                        });
+                        i = v.data[i].p;
+                    }
+                        d.push({
+                            "x" : v.data[i].i % m.s.w,
+                            "y" : parseInt(v.data[i].i / m.s.w)
+                        });
+                    return d;
+                }
+                
+                Container = function() {
+                    Sprite.call(this);
+                    this.t = new Transform();
+                }
+                
+                Container.prototype = new Sprite();
+                
+                Container.prototype.handler = function(e) {
+                    switch (e.t) {
+                    case 0:
+                        this.init = {"e": e, "t": (new Date()).valueOf()};
+                        this.prev = e;
+                        break;
+                    case 1:
+                        if (this.prev) {
+                            this.newpos(this.childs[0].x + e.x - this.prev.x, this.childs[0].y + e.y - this.prev.y);
+                            this.prew = this.prev;
+                            this.prev = e;
+                        }
+                        break;
+                    case 2:
+                        if (this.prew) {
+                            this.t.move({
+                                "f": this.onstep,
+                                "t": this
+                            }, e.x - this.prew.x,e.y - this.prew.y);
+                            delete this.prew;
+                        }
+                        if (this.init)
+                            if ((new Date()).valueOf() < this.init.t + 200 && Math.abs(e.x - this.init.e.x) < 20 && Math.abs(e.y - this.init.e.y) < 20)
+                                Sprite.prototype.handler.call(this, e);
+                    case 3:
+                        delete this.prev;
+                        break;
+                    case 4:
+                        this.childs[0].x = 0;
+                        this.childs[0].y = 0;
+                        this.w = this.p.w;
+                        this.h = this.p.h;
+                        app.render.invalidate();
+                        break;
+                    }
+                }
+                
+                Container.prototype.onstep = function(a,b) {
+                    if (!this.newpos(this.childs[0].x+ a, this.childs[0].y + b))
+                        return true;
+                }
+                
+                Container.prototype.newpos = function(a,b) {
+                    var f;
+                    if (a <= 0 && this.w - this.childs[0].w * this.childs[0].scaleX <= a) {
+                        this.childs[0].x = a;
+                        f  = 1;
+                    }
+                    if (b <= 0 && this.h - this.childs[0].h * this.childs[0].scaleY <= b) {
+                        this.childs[0].y = b;
+                        f  = 1;
+                    }
+                    if (f)
+                        app.render.invalidate();
+                    return f;
+                }
+                
+                Helper = {};
+                
+                Helper.difficulty = function(d) {
+                    var  i;
+                    for (i = 0; i < Game.c.length;i++)
+                        if (Game.c[i].difficulty == d)
+                            return i;
+                }
+                
+                Helper.align = function(m,t,p,a,b) {
+                    var d = a < b ? 1 : -1;
+                    var i;
+                    var j;
+                    if (t) {
+                        for (i = a; i != b; i += d)
+                            if (!m.childs[p * m.s.w + i].d) {
+                                for (j = i + d; j != b + d; j +=d)
+                                    if (m.childs[p * m.s.w + j].d)
+                                        break;
+                                if (j == b + d)
+                                    break;
+                                m.childs[p * m.s.w + i].d = m.childs[p * m.s.w + j].d;
+                                m.childs[p * m.s.w + j].d = 0;
+                            }
+                    } else
+                        for (i = a; i != b; i += d)
+                            if (!m.childs[i * m.s.w + p].d) {
+                                for (j = i + d; j != b + d; j +=d)
+                                    if (m.childs[j * m.s.w + p].d)
+                                        break;
+                                if (j == b + d)
+                                    break;
+                                m.childs[i * m.s.w + p].d = m.childs[j * m.s.w + p].d;
+                                m.childs[j * m.s.w + p].d = 0;
+                            }
+                }
+                
+                Game = function() {
+                    Sprite.call(this);
+                    this.ui = {
+                        "pause": document.getElementById("pause"),
+                        "difficulty": document.getElementById("difficulty"),
+                        "level": document.getElementById("level"),
+                        "life": document.getElementById("life"),
+                        "score": document.getElementById("score"),
+                        "pitch": document.getElementById("pitch"),
+                        "playground": document.getElementById("playground"),
+                        "swap": document.getElementById("swap"),
+                        "tip": document.getElementById("tip")
+                    };
+                    this.map = new Map({
+                        "t": this,
+                        "f": this.onselect
+                    },{
+                        "bitmap": document.getElementById("preload-img"),
+                        "iw": 46,
+                        "ih": 61
+                    });
+                    var c = new Container();
+                    c.childs.push(this.map);
+                    this.childs.push(c);
+                    c.p = this;
+                }
+                
+                Game.c = [
+                    {"w": 9, "h": 14,"difficulty": "初级", "life": 2, "tip": 4, "swap": 4, "object": 21},
+                    {"w":10, "h": 16,"difficulty": "中级", "life": 3, "tip": 6, "swap": 6, "object": 26},
+                    {"w":11, "h": 18,"difficulty": "高级", "life": 4, "tip": 8, "swap": 8, "object": 36},
+                    {"w":12, "h": 20,"difficulty": "特高", "life": 5, "tip":10, "swap":10, "object": 42}
+                ];
+                
+                Game.l = [
+                    function(m,x,y) {
+                    }
+                    ,
+                    function(m,x,y) {
+                        Helper.align(m, 0, x, y, 1);
+                    }
+                    ,
+                    function(m,x,y) {
+                        Helper.align(m, 1, y, x, m.s.w- 2);
+                    }
+                    ,
+                    function(m,x,y) {
+                        var h = parseInt(m.s.h / 2);
+                        Helper.align(m, 0, x, y, y < h ? h - 1 :h);
+                    }
+                    ,
+                    function(m,x,y) {
+                        var w = parseInt(m.s.w / 2);
+                        Helper.align(m, 1, y, x, x < w ? w - 1 :w);
+                    }
+                    ,
+                    function(m,x,y) {
+                        Helper.align(m, 0, x, y, y < parseInt(m.s.h / 2) ? 1 : m.s.h - 2);
+                    }
+                    ,
+                    function(m,x,y) {
+                        Helper.align(m, 1, y, x, x < parseInt(m.s.w / 2) ? 1 : m.s.w - 2);
+                    }
+                    ,
+                    function(m,x,y) {
+                        Helper.align(m, 1, y, x, y < parseInt(m.s.h / 2) ? m.s.w - 2 : 1);
+                    }
+                    ,
+                    function(m,x,y) {
+                        Helper.align(m, 0, x, y, x < parseInt(m.s.w / 2) ? 1 : m.s.h - 2);
+                    }
+                    ,
+                    function(m,x,y) {
+                        var h = parseInt(m.s.h / 2);
+                        var w = parseInt(m.s.w / 2);
+                        if (x < w) {
+                            w--;
+                            if (y < h) {
+                                h--;
+                                Helper.align(m, 0,x, y, h);
+                            } else
+                                Helper.align(m, 1,y, x, w);
+                        } else {
+                            if (y < h)
+                                Helper.align(m, 1,y, x, w);
+                            else
+                                Helper.align(m, 0,x, y, h);
+                        }
+                    }
+                    ,
+                    function(m,x,y) {
+                        var h = parseInt(m.s.h / 2);
+                        var w = parseInt(m.s.w / 2);
+                        if (x < w) {
+                            if (y < h)
+                                Helper.align(m, 1,y, x, 1);
+                            else
+                                Helper.align(m, 0,x, y, m.s.h - 2);
+                        } else {
+                            if (y < h)
+                                Helper.align(m, 0,x, y, 1);
+                            else
+                                Helper.align(m, 1,y, x, m.s.w - 2);
+                        }
+                    }
+                ];
+                
+                Game.prototype = new Sprite();
+                
+                Game.prototype.handler = function(e) {
+                    switch (e.t) {
+                    case 4:
+                        this.w = this.p.w;
+                        this.h = this.p.h;
+                        break;
+                    }
+                    Sprite.prototype.handler.call(this, e);
+                }
+                
+                Game.prototype.prepare = function(d) {
+                    this.ui.difficulty.innerHTML = Game.c[d].difficulty;
+                    this.ui.level.innerHTML = 0;
+                    this.ui.life.innerHTML = Game.c[d].life;
+                    this.ui.score.innerHTML = 0;
+                    this.ui.tip.innerHTML = Game.c[d].tip;
+                    this.ui.swap.innerHTML = Game.c[d].swap;
+                    
+                    this.ready();
+                }
+                
+                Game.prototype.ready = function() {
+                    this.running = true;
+                    this.mode = 0;
+                    this.time = 600;
+                    delete this.prev;
+                    
+                    var  d = Helper.difficulty(this.ui.difficulty.innerHTML);
+                    this.s = this.map.create(Game.c[d].w, Game.c[d].h, Game.c[d].object);
+                    app.render.canvas.style.backgroundColor = (["#6BADF6", "#FFC3C3", "#E3EF85", "#9673FF", "#40CF40", "#79796A", "#FAEEA9", "#DAD1FF", "#646473", "#448800", "#FFD24D"])[this.ui.level.innerHTML];
+                    
+                    this.map.update();
+                    app.render.invalidate();
+                }
+                
+                Game.prototype.clear = function() {
+                    var s;
+                    if (!(s = Rule.checka(this.map))) {
+                        var  i;
+                        for (i = 0; i < this.map.childs.length; i++)
+                            if (this.map.childs[i].d)
+                                break;
+                        if (i == this.map.childs.length) {
+                            this.ui.life.innerHTML = eval(this.ui.life.innerHTML) + 1; this.ui.tip.innerHTML = eval(this.ui.tip.innerHTML) + 1; this.ui.swap.innerHTML = eval(this.ui.swap.innerHTML) + 1;
+                            this.next(1);
+                            return;
+                        } else {
+                            this.ui.life.innerHTML = eval(this.ui.life.innerHTML) - 1;
+                            if (this.ui.life.innerHTML <= 0) {
+                                this.next(0);
+                                return;
+                            }
+                            do
+                                this.map.exchange();
+                            while(!(s = Rule.checka(this.map)));
+                        }
+                    }
+                    this.s = s;
+                    this.running = true;
+                    this.map.update();
+                    app.render.invalidate();
+                }
+                
+                Game.prototype.ontime = function() {
+                    if (!this.running)
+                        return;
+                    
+                    if (0 < this.time) {
+                        this.time -=0.5;
+                        this.ui.pitch.style.width = (this.time / 6) + "%";
+                    } else
+                        this.next(0);
+                }
+                
+                Game.prototype.onselect = function(x,y) {
+                    if (!this.running)
+                        return;
+                    if (this.map.childs[y * this.map.s.w + x].d) {
+                        
+                        if (!this.prev || !(this.prev.x == this.s[0].x && this.prev.y == this.s[0].y))
+                            this.map.setforeground(this.s[0].x, this.s[0].y, 0);
+                        var l = this.s.length-1;
+                        if (!this.prev || !(this.prev.x == this.s[l].x && this.prev.y == this.s[l].y))
+                            this.map.setforeground(this.s[l].x, this.s[l].y, 0);
+                        
+                        this.map.setforeground(x, y,49);
+                        switch (this.mode) {
+                        case 0:
+                            if (this.prev) {
+                                if (this.prev.x == x && this.prev.y == y)
+                                    break;
+                                
+                                var s;
+                                if (s = Rule.checkp(this.map, this.prev.x, this.prev.y, x, y)) {
+                                    this.map.mark(s);
+                                    this.map.childs[this.prev.y * this.map.s.w + this.prev.x].d = 0;
+                                    this.map.childs[y * this.map.s.w + x].d = 0;
+                                    
+                                    Game.l[this.ui.level.innerHTML](this.map, this.prev.x, this.prev.y);
+                                    Game.l[this.ui.level.innerHTML](this.map, x, y);
+                                    
+                                    this.time += 2;
+                                    if (this.time > 600)
+                                        this.time = 600;
+                                    this.ui.score.innerHTML =eval(this.ui.score.innerHTML) + 10;
+                                    this.gift();
+                                    
+                                    delete this.prev;
+                                    this.running = false;
+                                    setTimeout( function(e) {app.game.clear();}, 100);
+                                    app.soundplayer.play(1);
+                                } else {
+                                    this.map.setforeground(this.prev.x,this.prev.y,0);
+                                    this.prev = {
+                                        "x": x,
+                                        "y": y
+                                    };
+                                    app.soundplayer.play(0);
+                                }
+                            } else {
+                                    this.prev = {
+                                        "x": x,
+                                        "y": y
+                                    };
+                                    app.soundplayer.play(0);
+                            }
+                            break;
+                        case 1:
+                            if (this.prev) {
+                                if (this.prev.x == x && this.prev.y == y)
+                                    return;
+                                
+                                var t = this.map.childs[y * this.map.s.w + x].d;
+                                this.map.childs[y * this.map.s.w + x].d = this.map.childs[this.prev.y * this.map.s.w + this.prev.x].d;
+                                this.map.childs[this.prev.y * this.map.s.w + this.prev.x].d = t;
+                                
+                                this.mode = 0;
+                                app.render.canvas.style.backgroundColor = this.color;
+                                
+                                    delete this.prev;
+                                    this.running = false;
+                                    setTimeout(function(e) {app.game.clear();} , 100);
+                            } else {
+                                    this.prev = {
+                                        "x": x,
+                                        "y": y
+                                    };
+                            }
+                                    app.soundplayer.play(0);
+                            break;
+                        }
+                        app.render.invalidate();
+                    }
+                }
+                
+                Game.prototype.next = function(t) {
+                    switch (t) {
+                    case 0:
+                        alert("游戏结束！");
+                        break;
+                    case 1:
+                        var c;
+                        alert("恭喜过关，另加" + (c = parseInt(this.time)) + "分！");
+                        this.ui.score.innerHTML = eval(this.ui.score.innerHTML)+ c;
+                        
+                        if (this.ui.level.innerHTML < 10) {
+                            this.ui.level.innerHTML = eval(this.ui.level.innerHTML) + 1;
+                            this.ready();
+                            return;
+                        }
+                        break;
+                    }
+                    var d = Helper.difficulty(this.ui.difficulty.innerHTML);
+                    this.prepare(d);
+                }
+                
+                Game.prototype.show = function() {
+                    if (this.running)
+                    if (this.ui.tip.innerHTML > 0) {
+                        this.ui.tip.innerHTML = eval(this.ui.tip.innerHTML) - 1;
+                        if (!this.prev || !(this.prev.x == this.s[0].x && this.prev.y == this.s[0].y))
+                            this.map.setforeground(this.s[0].x, this.s[0].y,50);
+                        var l = this.s.length-1;
+                        if (!this.prev || !(this.prev.x == this.s[l].x && this.prev.y == this.s[l].y))
+                            this.map.setforeground(this.s[l].x, this.s[l].y,50);
+                        
+                        app.render.invalidate();
+                    }
+                }
+                
+                Game.prototype.swap = function() {
+                    if (this.running)
+                    if (this.ui.swap.innerHTML > 0) {
+                        this.ui.swap.innerHTML = eval(this.ui.swap.innerHTML) - 1;
+                        this.color = app.render.canvas.style.backgroundColor;
+                        if (this.prev) {
+                            this.map.setforeground(this.prev.x, this.prev.y, 0);
+                            delete this.prev;
+                        }
+                        this.mode = 1;
+                        app.render.canvas.style.backgroundColor = "#FFFFFF";
+                        this.map.update();
+                        app.render.invalidate();
+                    }
+                }
+                
+                Game.prototype.rank = function() {
+                    var d = Helper.difficulty(this.ui.difficulty.innerHTML);
+                    if (++d == Game.c.length)
+                        d = 0;
+                    this.prepare(d);
+                        app.render.handler({"t": 4});
+                }
+                
+                Game.prototype.dead = function() {
+                    if (this.running)
+                    if (this.ui.life.innerHTML > 1) {
+                        this.ui.life.innerHTML = eval(this.ui.life.innerHTML) - 1;
+                        
+                        var s;
+                        do
+                            this.map.exchange();
+                        while(!(s = Rule.checka(this.map)));
+                        this.s = s;
+                        this.map.update();
+                        app.render.invalidate();
+                    }
+                }
+                
+                Game.prototype.gift = function() {
+                    var r = Math.random();
+                    if (r < 0.02) {
+                        var c;
+                        alert("不错哦，送你" + (c = parseInt(Math.random()* 3) + 1) + "点提示！");
+                        this.ui.tip.innerHTML = eval(this.ui.tip.innerHTML) + c;
+                    } else if (r < 0.04) {
+                        alert("不错哦，送你1个交换道具！");
+                        this.ui.swap.innerHTML = eval(this.ui.swap.innerHTML) + 1;
+                    }
+                }
+                
+                Game.prototype.hide = function() {
+                    this.running =!this.running;
+                    this.ui.playground.style.display = !this.running ? "none": "block";
+                    this.ui.pause.innerHTML = !this.running ? "继续" : "暂停";
+                }
+                
+                Soundplayer = function() {
+                    this.data = audiojs.createAll({
+                        "css" : false
+                    });
+                }
+                
+                Soundplayer.prototype.play = function(i) {
+                    if (window.audio)
+                        window.audio.play(i);
+                    else {
+                        try {
+                        this.data[i].skipTo(0); this.data[i].play();
+                        } catch(e) {
+                        }
+                    }
+                }
+                
+                app = {};
+                app.mousetype = function(e) {
+                    if (e.changedTouches) {
+                     this.removeEventListener("touchstart", app.mousetype);
+                        this.addEventListener("touchstart", app.mousedown);
+                        this.addEventListener("touchend"  , app.mouseup  );
+                        this.addEventListener("touchmove" , app.mousemove);
+                    } else {
+                     this.removeEventListener("mousedown" , app.mousetype);
+                        this.addEventListener("mousedown" , app.mousedown);
+                        this.addEventListener("mouseup"   , app.mouseup  );
+                        this.addEventListener("mousemove" , app.mousemove);
+                        this.addEventListener("mouseleave", app.mouseleav);
+                    }
+                    app.mousedown(e);
+                }
+                app.mousedown = function(e) {
+                    e.preventDefault();
+                    var c = e;
+                    if (e.changedTouches)
+                        c = e.changedTouches[0];
+                    app.render.handler({
+                        "t": 0,
+                        "x":(c.clientX - app.render.canvas.offsetLeft - app.render.x) / app.render.scaleX, "y": (c.clientY - app.render.canvas.offsetTop - app.render.y) / app.render.scaleY,
+                    });
+                }
+                app.mouseup   = function(e) {
+                    var c = e;
+                    if (e.changedTouches)
+                        c = e.changedTouches[0];
+                    app.render.handler({
+                        "t": 2,
+                        "x":(c.clientX - app.render.canvas.offsetLeft - app.render.x) / app.render.scaleX, "y": (c.clientY - app.render.canvas.offsetTop - app.render.y) / app.render.scaleY,
+                    });
+                }
+                app.mousemove = function(e) {
+                    e.preventDefault();
+                    var c = e;
+                    if (e.changedTouches)
+                        c = e.changedTouches[0];
+                    app.render.handler({
+                        "t": 1,
+                        "x":(c.clientX - app.render.canvas.offsetLeft - app.render.x) / app.render.scaleX, "y": (c.clientY - app.render.canvas.offsetTop - app.render.y) / app.render.scaleY,
+                    });
+                }
+                app.mouseleav = function(e) {
+                    e.preventDefault();
+                    app.render.handler({
+                        "t": 3
+                    });
+                }
+                
+                window.onload = function(e) {
+                    var c = document.getElementById("html5-canvas");
+                    c.addEventListener("touchstart", app.mousetype);
+                    c.addEventListener("mousedown" , app.mousetype);
+                    
+                    app.render = new Render(c);
+                    var g = new Game();
+                    app.render.childs.push(g);
+                    g.p = app.render;
+                    
+                    app.soundplayer = new Soundplayer();
+                    
+                    app.game = g
+                    app.game.prepare(0);
+                    setInterval(function(){app.game.ontime();},500);
+                    
+                    (window.onresize = function(e) {
+                        var c = document.getElementById("html5-canvas");
+                        c.style.height = document.documentElement.clientHeight - (document.getElementById("title").offsetHeight + document.getElementById("menubar").offsetHeight + document.getElementById("progressbar").offsetHeight + document.getElementById("item").offsetHeight) + "px";
+                        c.setAttribute("height", c.offsetHeight); c.setAttribute("width", c.offsetWidth);
+                        app.render.handler({"t": 4});
+                    })();
+                }
+            </script>
+        </div>
+    </body>
+</html>

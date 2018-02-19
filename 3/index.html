@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, target-densitydpi=device-dpi, initial-scale=1">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="browsermode" content="application">
+        <meta name="x5-page-mode" content="app">
+        
+        <link rel="icon" href="favicon.ico" />
+        <link rel="apple-touch-icon" href="apple-touch-icon-57x57.png" />
+        
+        <style type="text/css">
+            * {margin: 0; padding: 0;}
+            body {text-align: center; overflow: hidden; background: #000000;}
+        </style>
+    </head>
+    <body>
+        <canvas id="canvas"></canvas>
+        <script type="text/javascript" src="zyngin.min.js"></script>
+        <script type="text/javascript">
+            (function() {
+                eval(Zyngin.define("canvas"));
+                
+                rootLayer.w = 320;
+                rootLayer.h = 480;
+                
+                /**
+                 * 游戏速度
+                 *
+                 *
+                 */
+                var point;
+                var topup;
+                var speed;
+                var state = 0;
+                var btype = 0, ptype = 0;
+                var bdata = new Array(16), pdata = new Array(16), cdata = new Array(200);
+                
+                var htype = 0;
+                var hdata = new Array(16);
+                
+                var pause = false;
+                var brick = [
+                    "1111000000000000",
+                    "1000100010001000",
+                    "1111000000000000",
+                    "1000100010001000",
+                    "2220020000000000",
+                    "0200220002000000",
+                    "0200222000000000",
+                    "2000220020000000",
+                    "3300030003000000",
+                    "0030333000000000",
+                    "3000300033000000",
+                    "3330300000000000",
+                    "4400440000000000",
+                    "4400440000000000",
+                    "4400440000000000",
+                    "4400440000000000",
+                    "0550550000000000",
+                    "5000550005000000",
+                    "0550550000000000",
+                    "5000550005000000",
+                    "6600066000000000",
+                    "0600660060000000",
+                    "6600066000000000",
+                    "0600660060000000",
+                    "7700700070000000",
+                    "7770007000000000",
+                    "0700070077000000",
+                    "7000777000000000"
+                ];
+                
+                var scene = Layer.inflate({
+                    "class": "Layer",
+                    "w": 320,
+                    "h": 480,
+                    "children": [
+                        {
+                            "class": "Sprite",
+                            "w": 320,
+                            "h": 480,
+                            "imageData": {
+                                "name": "1"
+                            }
+                        },
+                        {
+                            "id": "grid",
+                            "class": "CachedLayer",
+                            "x": 27,
+                            "y": 104,
+                            "w": 160,
+                            "h": 320
+                        },
+                        {
+                            "id": "curr",
+                            "class": "CachedLayer",
+                            "visible": false,
+                            "x": 27,
+                            "y": 104,
+                            "w": 64,
+                            "h": 64
+                        },
+                        {
+                            "id": "paus",
+                            "class": "Sprite",
+                            "x": 213,
+                            "y": 56,
+                            "w": 96,
+                            "h": 32,
+                            "imageData": {
+                                "x": 213,
+                                "y": 56,
+                                "name": "1"
+                            }
+                        },
+                        {
+                            "id": "scor",
+                            "class": "CachedLayer",
+                            "x": 221,
+                            "y": 129,
+                            "w": 80,
+                            "h": 16
+                        },
+                        {
+                            "id": "line",
+                            "class": "CachedLayer",
+                            "x": 221,
+                            "y": 194,
+                            "w": 80,
+                            "h": 16
+                        },
+                        {
+                            "id": "hold",
+                            "class": "CachedLayer",
+                            "x": 229,
+                            "y": 257,
+                            "w": 64,
+                            "h": 64
+                        },
+                        {
+                            "id": "next",
+                            "class": "CachedLayer",
+                            "x": 229,
+                            "y": 368,
+                            "w": 64,
+                            "h": 64
+                        }
+                    ]
+                });
+                
+                function main() {
+                    scene.parent = rootLayer;
+                    rootLayer.children.push(scene);
+                    
+                    rest();
+                    
+                    var g = scene.findChild("grid");
+                    g.onTouch = function(e) {
+                        if (!pause) {
+                            switch (e.eventId) {
+                            case 0:
+                                this.p = e;
+                                break;
+                            case 1:
+                                if (this.p) {
+                                    var c = scene.findChild("curr");
+                                    var m = 0;
+                                    var n = 0;
+                                    if (16 <= Math.abs(e.x - this.p.x)) {
+                                        m = e.x < this.p.x ? -1 : 1;
+                                        this.p.x = e.x;
+                                    }
+                                    if (16 <= e.y - this.p.y) {
+                                        n = 1;
+                                        this.p.y = e.y;
+                                    }
+                                    if (m || n) {
+                                        move(parseInt((c.x - this.x) / 16) + m, parseInt((c.y - this.y) / 16) + n);
+                                        this.t = true;
+                                    }
+                                }
+                                break;
+                            case 2:
+                                if (this.p) {
+                                    if (!this.t)
+                                        if (scene.findChild("curr").visible)
+                                            rock();
+                                    this.t = false;
+                                    this.p = false;
+                                }
+                                break;
+                            }
+                            return true;
+                        }
+                    };
+                    g.onFocusout = function() {
+                        this.p = false;
+                    };
+                    
+                    scene.findChild("hold").onTouch = function(e) {
+                        if (e.eventId == 2) {
+                            var c = scene.findChild("curr"), h = scene.findChild("hold");
+                            if (this.p && !c.visible) {
+                                this.p = false;
+                                if (copy(htype, hdata)) {
+                                    state = 1;
+                                    fill(new Array(16), 4, h);
+                                }
+                                else
+                                    lose();
+                            } else if (c.visible && !this.p) {
+                                this.p = true;
+                                htype = btype;
+                                var i = 0;
+                                for (; i < 16; i++)
+                                    hdata[i] = bdata[i];
+                                fill(hdata, 4, h);
+                                c.visible = false;
+                                state = 0;
+                            }
+                        }
+                        return true;
+                    };
+                    
+                    scene.findChild("paus").onTouch = function(e) {
+                        if (e.eventId == 2) {
+                            pause = !pause;
+                            if (!pause) {
+                                this.imageData.name = "1";
+                                this.imageData.x = 213;
+                                this.imageData.y = 56;
+                            } else {
+                                this.imageData.name = "2";
+                                this.imageData.x = 0;
+                                this.imageData.y = 0;
+                            }
+                            return true;
+                        }
+                    };
+                    
+                    var t = new Timer(speed);
+                    t.onTime = function() {this.e.delay = speed; if (!pause) tick();};
+                    t.start();
+                };
+                
+                function tick() {
+                    switch (state) {
+                    case 0:
+                        if (next())
+                            state = 1;
+                        else lose();
+                        break;
+                    case 1:
+                        var c = scene.findChild("curr"), g = scene.findChild("grid");
+                        if (!move(parseInt((c.x - g.x) / 16), parseInt((c.y - g.y) / 16) + 1)) {
+                            var i = 0;
+                            for (; i < 4; i++) {
+                                var j = 0;
+                                for (; j < 4; j++)
+                                    if (bdata[i * 4 + j])
+                                        cdata[(parseInt((c.y - g.y) / 16) + i) * 10 + (parseInt((c.x - g.x) / 16) + j)] = bdata[i * 4 + j];
+                            }
+                            /**
+                             * 消除
+                             * 
+                             * 
+                             */
+                            rule();
+                            fill(cdata, 10, g);
+                            c.visible = false;
+                            state = 0;
+                        }
+                        break;
+                    }
+                };
+                
+                function lose() {
+                    alert("游戏结束!");
+                    rest();
+                }
+                
+                function rest() {
+                    speed = 1000;
+                    var i = 0;
+                    for (; i < cdata.length; i++)
+                        cdata[i] = undefined;
+                    
+                    fill(cdata, 10, scene.findChild("grid"));
+                    text(point = 0, scene.findChild("scor"));
+                    text(topup = 0, scene.findChild("line"));
+                    
+                    var h = scene.findChild("hold");
+                    h.p = false;
+                    fill(new Array(16), 4, h);
+                    fill(new Array(16), 4, scene.findChild("next"));
+                    
+                    rand();
+                    state = 0;
+                };
+                
+                function rule() {
+                    var c = scene.findChild("curr"), g = scene.findChild("grid");
+                    var y = parseInt((c.y - g.y) / 16);
+                    if (topup < 20 - y) {
+                        topup = 20 - y;
+                        text(topup, scene.findChild("line"));
+                    }
+                    if (y == 0)
+                        lose();
+                    else {
+                        var i = 0;
+                        for (; i < 4; i++) {
+                            var j = 0;
+                            for (; j < 10; j++)
+                                if (!cdata[(i + y) * 10 + j])
+                                    break;
+                            if (j == 10) {
+                                text(point += 10, scene.findChild("scor"));
+                                text(--topup, scene.findChild("line"));
+                                if (10 < speed)
+                                    speed -= 10;
+                                bomb(i + y);
+                            }
+                        }
+                    }
+                };
+                 
+                function bomb(line) {
+                    var j = 0;
+                    for (; j < 10; j++)
+                        cdata[j] = 0;
+                    
+                    var i = line;
+                    for (; i > 0; i--) {
+                        var j = 0;
+                        for (; j < 10; j++)
+                            cdata[i * 10 + j] = cdata[(i - 1) * 10 + j];
+                    }
+                };
+                
+                /**
+                 * 冲突监测
+                 * 
+                 * 
+                 */
+                function conf(data, allData, x, y) {
+                    if (x < 0 || y < 0)
+                        return true;
+                    else {
+                        var i = 0;
+                        for (; i < 4; i++) {
+                            var j = 0;
+                            for (; j < 4; j++)
+                                if (data[i * 4 + j])
+                                    if (20 <= y + i || allData[(y + i) * 10 + (x + j)])
+                                        return 1;
+                                    else if (10 <= x + j)
+                                        return 2;
+                        }
+                    }
+                };
+                
+                function next() {
+                    if (copy(ptype, pdata)) {
+                        rand();
+                        return true;
+                    }
+                };
+                
+                function copy(type, data) {
+                    btype = type;
+                    var i = 0;
+                    for (; i < 16; i++)
+                        bdata[i] = data[i];
+                    /**
+                     * 确保不是左右冲突
+                     * 
+                     * 
+                     */
+                    var x;
+                    var r;
+                    do {
+                        r = conf(bdata, cdata, x = parseInt(Math.random() * 10), 0);
+                    } while(r == 2);
+                    if (!r) {
+                        var c = scene.findChild("curr");
+                        fill(bdata, 4, c);
+                        move(x, 0);
+                        c.visible = true;
+                        return true;
+                    }
+                }
+                
+                /**
+                 * 产生下一个方块
+                 * 
+                 * 
+                 */
+                function rand() {
+                    ptype = parseInt(Math.random() * brick.length);
+                    var i = 0;
+                    for (; i < 16; i++)
+                        pdata[i] = eval(brick[ptype][i]);
+                    fill(pdata, 4, scene.findChild("next"));
+                };
+                
+                /**
+                 * 旋转方块
+                 * 
+                 * 
+                 */
+                function rock() {
+                    var m = btype % 4 != 3 ? btype + 1 : btype - 3;
+                    var tdata = new Array(16);
+                    var i = 0;
+                    for (; i < 16; i++)
+                        tdata[i] = eval(brick[m][i]);
+                    var c = scene.findChild("curr"), g = scene.findChild("grid");
+                    if (!conf(tdata, cdata, parseInt((c.x - g.x) / 16), parseInt((c.y - g.y) / 16))) {
+                        var i = 0;
+                        for (; i < 16; i++)
+                            bdata[i] = tdata[i];
+                        btype = m;
+                        fill(bdata, 4, c);
+                        return true;
+                    }
+                };
+                
+                function move(x, y) {
+                    if (!conf(bdata, cdata, x, y)) {
+                        var c = scene.findChild("curr"), g = scene.findChild("grid");
+                        c.x = g.x + x * 16;
+                        c.y = g.y + y * 16;
+                        return true;
+                    }
+                };
+                
+                function fill(data, w, container) {
+                    var i = 0;
+                    container.children = [];
+                    for (; i < data.length; i++)
+                        if (data[i]) {
+                            var s = new Sprite({
+                                "x": 324,
+                                "y": 352 + data[i] * 16,
+                                "name": "1"
+                            });
+                            s.x = (i % w) * 16; s.y = parseInt(i / w) * 16;
+                            s.w = 16;
+                            s.h = 16;
+                            container.children.push(s);
+                        }
+                    container.update = true;
+                };
+                
+                function text(data, container) {
+                    var i = 0;
+                    data %= 100000;
+                    data += "";
+                    
+                    container.children = [];
+                    var i = 0;
+                    for (; i < data.length; i++) {
+                        var m = eval(data[i]); m = m == 0 ? 9 : m - 1;
+                        var s = new Sprite({
+                            "x": 324,
+                            "y": m * 16,
+                            "name": "1"
+                        });
+                        s.x = i * 16;
+                        s.w = 16;
+                        s.h = 16;
+                        container.children.push(s);
+                    }
+                    container.update = true;
+                };
+                
+                dataLoader.callback = function(percent) {
+                    if (percent == 1)
+                        main();
+                };
+                dataLoader.loadData([
+                    {"url": "tetris.jpg", "name": "1"},
+                    {"url": "goplay.jpg", "name": "2"}
+                ]);
+                
+                (window.onresize = function(e) {
+                    var canvas = document.getElementById("canvas"); canvas.width = rootLayer.w; canvas.height = rootLayer.h;
+                    var r = Math.min(document.documentElement.clientWidth / canvas.width, document.documentElement.clientHeight / canvas.height);
+                    /**
+                     * 缩放画布以提高效率
+                     *
+                     *
+                     */
+                    canvas.style.width = canvas.width * r + "px"; canvas.style.height = canvas.height * r + "px";
+                    canvas.style.marginTop = (document.documentElement.clientHeight - canvas.height * r) / 2 + "px";
+                })();
+            })();
+        </script>
+    </body>
+</html>
