@@ -1444,7 +1444,7 @@
                 show($(this).parents('li'), 1);
             });
             $('img').on('click', function () {
-                $(this).attr('src', $(this).parent().data('img'));
+                $(this).attr('src', 'https://ww3.sinaimg.cn/large/' + $(this).parent().data('img').replace('SA/', ''));
             });
             $('body>div>div>input[type=\'checkbox\']').on('click', function () {
                 if($(this)[0].checked) {
