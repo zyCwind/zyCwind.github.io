@@ -46,6 +46,16 @@
                 margin-top: 10px;
                 width: 100%;
             }
+            li:before {
+                content: counter(sectioncounter);
+                counter-increment: sectioncounter;
+                float: right;
+                font-weight: bold;
+                color: #fff;
+                width: 40px;
+                background-color: #07f;
+                text-align: center;
+            }
             li>div.a {
                 margin-top: 10px;
             }
@@ -85,7 +95,7 @@
             <h3 style="text-align: center;">2018新版全国驾驶机动车考试题库科目一</h3>
             <div>数据来源: <a href="https://tk.mnks.cn/">https://tk.mnks.cn/</a><br />zy_cwind@weixin</div>
             <div style="text-align: right;"><input type="checkbox" />显示答案</div>
-            <ul style="overflow: hidden;">
+            <ul style="overflow: hidden; counter-reset: sectioncounter;">
 <li><div>选择题<i class="star_2"></i></div><div class="q">驾驶机动车在道路上违反道路交通安全法的行为，属于什么行为？<span><input type="radio" name="1" value="1" />A、违章行为</span><span><input type="radio" name="1" value="2" />B、违法行为</span><span><input type="radio" name="1" value="3" />C、过失行为</span><span><input type="radio" name="1" value="4" />D、违规行为</span></div><div class="a">B<span>96</span><div>&ldquo;违反道路交通安全法&rdquo;，违反法律法规即为违法行为。官方已无违章/违规的说法。</div></div></li>
 <li><div>选择题<i class="star_2"></i></div><div class="q">机动车驾驶人造成事故后逃逸构成犯罪的，吊销驾驶证且多长时间不得重新取得驾驶证？<span><input type="radio" name="3" value="1" />A、5年内</span><span><input type="radio" name="3" value="2" />B、10年内</span><span><input type="radio" name="3" value="3" />C、终生</span><span><input type="radio" name="3" value="4" />D、20年内</span></div><div class="a">C<span>92</span><div>《道路交通安全法》第一百零一条：造成交通事故后逃逸的，由公安机关交通管理部门吊销机动车驾驶证，且终生不得重新取得机动车驾驶证。</div></div></li>
 <li><div>是非题<i class="star_4"></i></div><div class="q">驾驶机动车违反道路交通安全法律法规发生交通事故属于交通违章行为。<span><input type="radio" name="4" value="1" />对</span><span><input type="radio" name="4" value="2" />错</span></div><div class="a">错<span>84</span><div>&ldquo;违反道路交通安全法&rdquo;，违反法律法规即为违法行为。官方已无违章/违规的说法。</div></div></li>
