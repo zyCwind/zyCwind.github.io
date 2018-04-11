@@ -342,8 +342,8 @@
         });
         setInterval(function () {
             if (timer !== undefined) {
-                $('#t').text(format(parseInt(timer / 3600), parseInt((timer % 3600) / 60), timer % 60));
                 timer++;
+                $('#t').text(format(parseInt(timer / 3600), parseInt((timer % 3600) / 60), timer % 60));
             }
         }, 1000);
     </script>
