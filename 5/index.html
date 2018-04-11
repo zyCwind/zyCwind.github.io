@@ -142,10 +142,10 @@
             }(this));
         };
         Man.prototype.initialize = function () {
-            this.count = this.countBombsCountAround();
+            this.count = this.countBombsAround();
         };
 
-        Man.prototype.countBombsCountAround = function (withBorderCount) {
+        Man.prototype.countBombsAround = function (withBorderCount) {
             var pos = [[this.x - 1, this.y - 1], [this.x, this.y - 1], [this.x + 1, this.y - 1], [this.x - 1, this.y], [this.x + 1, this.y], [this.x - 1, this.y + 1], [this.x, this.y + 1], [this.x + 1, this.y + 1]];
             var count = 0;
             var borderCount = 0;
@@ -170,7 +170,7 @@
              *
              */
             if (isBomb) {
-                if (this.countBombsCountAround(true) == 8) {
+                if (this.countBombsAround(true) == 8) {
                     isBomb = false;
                 }
             }
