@@ -201,7 +201,7 @@
                 if (flag) {
                     if ($(this.element).hasClass('flag')) {
                         $(this.element).removeClass('flag');
-                    } else {
+                    } else if (!$(this.element).attr('class')) {
                         $(this.element).addClass('flag');
                     }
                 } else if (!$(this.element).hasClass('flag')) {
