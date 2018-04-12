@@ -256,7 +256,9 @@
                     }
                 }
             }
-            $('#face').addClass('failed');
+            if (!isWin) {
+                $('#face').addClass('failed');
+            }
         };
 
         var checkEnd = function () {
