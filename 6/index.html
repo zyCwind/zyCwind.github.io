@@ -25,17 +25,14 @@
         <div id="map"></div>
     </div>
     <script type="text/javascript">
-        /**
-         * 全局配置 
-         * 
-         * 
-         */
-        var CONFIG = {
+        var eventQueue = [];
+        var map = {
             w: 9,
             h: 9,
-            types: 6
+            type: 6
         };
-
+        map.data = new Array(map.w * map.h);
+        
         var c2d = function (w, x, y) {
             return y * w + x;
         };
@@ -59,7 +56,7 @@
             }
         };
 
-        var search = function (map, pos, searched) {
+        var searchInternal = function (map, pos, searched) {
             searched.push(pos);
             var x = pos % map.w;
             var y = parseInt(pos / map.w);
@@ -69,14 +66,14 @@
                     var p = c2d(map.w, position[i][0], position[i][1]);
                     if ($.inArray(p, searched) == -1) {
                         if (map.data[pos] == map.data[p]) {
-                            search(map, p, searched);
+                            searchInternal(map, p, searched);
                         }
                     }
                 }
             }
         };
 
-        var calculate = function (map, position) {
+        var search = function (map, position) {
             var e;
             /**
              * 全盘搜索
@@ -92,7 +89,7 @@
             for (var i = 0; i < position.length; i++) {
                 var searched = [];
                 if (map.data[position[i]]) {
-                    search(map, position[i], searched);
+                    searchInternal(map, position[i], searched);
                     if (searched.length >= 3) {
                         trimSearched(map, searched);
                         if (searched.length >= 3) {
@@ -112,20 +109,20 @@
             return e;
         };
 
-        var eventQueue = [];
-        var build = function (map, e) {
+        var remove = function (map, position) {
             var d;
-            if (e) {
-                for (var i = 0; i < e.length; i++) {
-                    map.data[e[i]] = 0;
-                    eventQueue.push({type: 'd', data: e[i]});
+            if (position) {
+                for (var i = 0; i < position.length; i++) {
+                    map.data[position[i]] = 0;
                 }
+                eventQueue.push({type: 'd', data: position});
             }
             /**
             * 向下移动
             *
             *
             */
+            var moved = [];
             for (var i = map.h - 1; i > 0; i--) {
                 for (var j = 0; j < map.w; j++) {
                     var a = c2d(map.w, j, i);
@@ -135,7 +132,7 @@
                             if (map.data[b]) {
                                 map.data[a] = map.data[b];
                                 map.data[b] = 0;
-                                eventQueue.push({type: 'm', data: [a, b]});
+                                moved.push([a, b]);
                                 break;
                             }
 
@@ -154,78 +151,74 @@
                     var count = j;
                     for (var j = 0; j < count; j++) {
                         var p = c2d(map.w, i, j);
-                        map.data[p] = parseInt(Math.random() * CONFIG.types) + 1;
-                        eventQueue.push({type: 'm', data: [c2d(map.w, i, j - count), p]});
+                        map.data[p] = parseInt(Math.random() * map.type) + 1;
+                        moved.push([c2d(map.w, i, j - count), p]);
                         d = d != undefined ? d.concat([p]) : [p];
                     }
                 }
             }
+            if (moved.length) {
+                eventQueue.push({
+                    type: 'm',
+                    data: moved
+                });
+            }
             return d;
         };
         
-        var solve = function (map, position) {
+        var checkEnd = function (map) {
             var swap = function (a, b) {
                 var t = map.data[a];
                 map.data[a] = map.data[b];
                 map.data[b] = t;
             };
-            if (position == undefined) {
-                position = new Array(map.data.length);
-                for (var i = 0; i < map.data.length; i++) {
-                    position[i] = i;
-                }
-            }
-            /**
-             * 上下左右四个方向判断是否有解
-             *
-             *
-             */
-            for (var i = 0; i < position.length; i++) {
-                var x = position[i] % map.w;
-                var y = parseInt(position[i] / map.h);
+            for (var i = 0; i < map.data.length; i++) {
+                var x = i % map.w;
+                var y = parseInt(i / map.h);
                 var pos = [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]];
                 for (var j = 0; j < pos.length; j++) {
                     if (pos[j][0] >= 0 && pos[j][0] < map.w && pos[j][1] >= 0 && pos[j][1] < map.h) {
                         var p = c2d(map.w, pos[j][0], pos[j][1]);
-                        swap(position[i], p);
-                        var e = calculate(map, [position[i], p]);
+                        swap(i, p);
+                        var e = search(map, [i, p]);
                         /**
                          * 复原
                          *
                          *
                          */
-                        swap(position[i], p);
+                        swap(i, p);
                         if (e) {
-                            return [position[i], p];
+                            return [i, p];
                         }
                     }
                 }
             }
         };
 
-        (function () {
-            var map = {
-                w: CONFIG.w,
-                h: CONFIG.h,
-                data: new Array(CONFIG.w * CONFIG.h)
-            };
-            var s;
+        var act = function (position) {
+            /**
+             * 稳定后判断是否有解
+             *
+             *
+             */
             do {
-                eventQueue.push({type: 'r'});
-                /**
-                 * 稳定后判断是否有解
-                 *
-                 *
-                 */
-                var e;
                 do {
-                    build(map, e);
-                    eventQueue.push({
-                        type: 'f'
-                    });
-                } while (e = calculate(map));
-            } while (!(s = solve(map)));
-        })();
+                } while (position = search(map, remove(map, position)));
+                if (checkEnd(map)) {
+                    break;
+                }
+                eventQueue.push({
+                    type: 'r'
+                });
+                map.data = new Array(map.w * map.h);
+            } while (true);
+        };
+        /**
+         * 初始化/交换后触发执行动画
+         *
+         *
+         */
+        act();
     </script>
 </body>
 </html>
