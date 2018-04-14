@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <title>消消乐</title>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, user-scalable=0">
+    <meta name="viewport" content="width=434, user-scalable=0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <script src="jquery.min.js"></script>
     <style type="text/css">
@@ -17,21 +18,61 @@
             margin: auto;
             width: 414px;
         }
+        #map {
+            position: relative;
+            list-style-type: none;
+            height: 414px;
+            overflow: hidden;
+        }
+        #map>li {
+            position: absolute;
+        }
+        li.selected {
+            opacity: 0.5;
+        }
+        li.c1 {
+            background-color: #f00;
+        }
+        li.c2 {
+            background-color: #ff0;
+        }
+        li.c3 {
+            background-color: #f0f;
+        }
+        li.c4 {
+            background-color: #0f0;
+        }
+        li.c5 {
+            background-color: #0ff;
+        }
+        li.c6 {
+            background-color: #00f;
+        }
     </style>
 </head>
 <body>
     <div id="container">
-        <div>这是一个好东西</div>
-        <div id="map"></div>
+        <div style="margin-top: 10px;">
+            <h3 style="text-align: center;">消消乐</h3>
+            <div>zy_cwind@weixin</div>
+        </div>
+        <div style="margin-top: 10px;"><ul id="map"></ul></div>
     </div>
     <script type="text/javascript">
         var eventQueue = [];
+        var prevSelected;
+        var canSelect;
         var map = {
             w: 9,
             h: 9,
-            type: 6
+            type: 6,
+            data : new Array(81)
         };
-        map.data = new Array(map.w * map.h);
+        var shadowMap = {
+            w: 46,
+            h: 46,
+            data : new Array(map.data.length)
+        }
         
         var c2d = function (w, x, y) {
             return y * w + x;
@@ -132,10 +173,12 @@
                             if (map.data[b]) {
                                 map.data[a] = map.data[b];
                                 map.data[b] = 0;
-                                moved.push([a, b]);
+                                moved.push({
+                                    from: b,
+                                    to: a
+                                });
                                 break;
                             }
-
                         }
                     }
                 }
@@ -152,8 +195,11 @@
                     for (var j = 0; j < count; j++) {
                         var p = c2d(map.w, i, j);
                         map.data[p] = parseInt(Math.random() * map.type) + 1;
-                        moved.push([c2d(map.w, i, j - count), p]);
-                        d = d != undefined ? d.concat([p]) : [p];
+                        moved.push({
+                            from: -c2d(map.w, i, count - j),
+                            to: p,
+                            data: map.data[p]
+                        });
                     }
                 }
             }
@@ -162,12 +208,16 @@
                     type: 'm',
                     data: moved
                 });
+                d = [];
+                for (var i = 0; i < moved.length; i++) {
+                    d.push(moved[i].to);
+                }
             }
             return d;
         };
         
         var checkEnd = function (map) {
-            var swap = function (a, b) {
+            var swapSliently = function (a, b) {
                 var t = map.data[a];
                 map.data[a] = map.data[b];
                 map.data[b] = t;
@@ -179,16 +229,13 @@
                 for (var j = 0; j < pos.length; j++) {
                     if (pos[j][0] >= 0 && pos[j][0] < map.w && pos[j][1] >= 0 && pos[j][1] < map.h) {
                         var p = c2d(map.w, pos[j][0], pos[j][1]);
-                        swap(i, p);
-                        var e = search(map, [i, p]);
-                        /**
-                         * 复原
-                         *
-                         *
-                         */
-                        swap(i, p);
-                        if (e) {
-                            return [i, p];
+                        swapSliently(i, p);
+                        {
+                            var e = search(map, [i, p]);
+                            swapSliently(i, p);
+                            if (e) {
+                                return 1;
+                            }
                         }
                     }
                 }
@@ -206,20 +253,124 @@
                 } while (position = search(map, remove(map, position)));
                 if (checkEnd(map)) {
                     break;
+                } else {
+                    eventQueue.push({type: 'r'});
+                    map.data = new Array(map.w * map.h);
+                    remove(map);
                 }
-                eventQueue.push({
-                    type: 'r'
-                });
-                map.data = new Array(map.w * map.h);
             } while (true);
+            performBatchAnimation();
         };
 
-        /**
-         * 初始化界面
-         * 初始化/交换后触发执行动画
-         *
-         *
-         */
+        var selected = function (e) {
+            e.preventDefault();
+            if (canSelect) {
+                var i = $(this).data('i');
+                if (prevSelected != undefined && i != prevSelected && (Math.abs(i - prevSelected) == 1 || Math.abs(i - prevSelected) == 9)) {
+                    var swap = function (a, b) {
+                        var t = map.data[a];
+                        map.data[a] = map.data[b];
+                        map.data[b] = t;
+                        eventQueue.push({type: 's', data: [a, b]});
+                    };
+                    /**
+                     * 交换
+                     *
+                     *
+                     */
+                    shadowMap.data[prevSelected].removeClass('selected');
+                    swap(i, prevSelected);
+                    {
+                        var e = search(map, [i, prevSelected]);
+                        if (e) {
+                            act(e);
+                        } else {
+                            swap(i, prevSelected);
+                            performBatchAnimation();
+                        }
+                        prevSelected = undefined;
+                    }
+                } else {
+                    if (prevSelected) {
+                        shadowMap.data[prevSelected].removeClass('selected');
+                    }
+                    prevSelected = i;
+                    $(this).addClass('selected');
+                }
+            }
+        };
+
+        var performBatchAnimation = function () {
+            var e = eventQueue.shift();
+            canSelect = !e;
+            if (e) {
+                var count;
+                var c = function () {
+                    if (!--count) {
+                        performBatchAnimation();
+                    }
+                };
+                switch (e.type) {
+                case 'm':
+                    {
+                        count = e.data.length
+                        for (var i = 0; i < e.data.length; i++) {
+                            var li;
+                            if (e.data[i].from < 0) {
+                                li = $('<li class="c' + e.data[i].data + '"></li>');
+                                li.width(shadowMap.w);
+                                li.height(shadowMap.h);
+                                li.css('left', (-e.data[i].from % map.w) * shadowMap.w);
+                                li.css('top', parseInt(e.data[i].from / map.w) * shadowMap.h);
+                                li.on('click', selected);
+                                $('#map').append(li);
+                            } else {
+                                li = shadowMap.data[e.data[i].from];
+                            }
+                            li.animate({top: parseInt(e.data[i].to / map.w) * shadowMap.h}, 'slow', 'swing', c);
+                            li.data('i', e.data[i].to);
+                            shadowMap.data[e.data[i].to] = li;
+                        }
+                    }
+                    break;
+                case 's':
+                    {
+                        /**
+                         * 交换
+                         *
+                         *
+                         */
+                        var l1 = shadowMap.data[e.data[0]];
+                        var l2 = shadowMap.data[e.data[1]];
+                        count = 2;
+                        l1.animate({top: parseInt(e.data[1] / map.w) * shadowMap.h, left: (e.data[1] % map.w) * shadowMap.w}, 'slow', 'swing', c);
+                        l1.data('i', e.data[1]);
+                        shadowMap.data[e.data[0]] = l2;
+                        l2.animate({top: parseInt(e.data[0] / map.w) * shadowMap.h, left: (e.data[0] % map.w) * shadowMap.w}, 'slow', 'swing', c);
+                        l2.data('i', e.data[0]);
+                        shadowMap.data[e.data[1]] = l1;
+                    }
+                    break;
+                case 'd':
+                    {
+                        for (var i = 0; i < e.data.length; i++) {
+                            shadowMap.data[e.data[i]].remove();
+                            delete shadowMap.data[e.data[i]];
+                        }
+                        performBatchAnimation();
+                    }
+                    break;
+                case 'r':
+                    {
+                        shadowMap.data = new Array(map.data.length);
+                        $('#map li').remove();
+                        performBatchAnimation();
+                    }
+                    break;
+                }
+            }
+        };
+
         act();
     </script>
 </body>
