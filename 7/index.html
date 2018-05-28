@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>坦克大战</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="jquery.min.js"></script>
+    <script src="hammer.min.js"></script>
+    <style type="text/css">
+        * {
+            margin: 0;
+            padding: 0;
+            font-family: monospace;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        #dc {
+            list-style-type: none;
+            width: 200px;
+        }
+        #dc::after {
+            content: '';
+            display: block;
+            clear: both;
+        }
+        #dc>li {
+            float: left;
+            width: 20px;
+            height: 16px;
+            position: relative;
+        }
+        #dc>li::before {
+            content: '';
+            display: block;
+            width: 8px;
+            height: 6px;
+            background: rgba(0, 0, 0, 0.1);
+            margin: 5px 6px;
+            position: absolute;
+            z-index: 1;
+        }
+        #dc>li::after {
+            content: '';
+            display: block;
+            width: 14px;
+            height: 10px;
+            border: rgba(0, 0, 0, 0.1) solid 2px;
+            margin: 1px;
+        }
+        #dc>li.active::before {
+            background: #000;
+        }
+        #dc>li.active::after {
+            border-color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div style="margin-top: 10px;">
+            <h3 style="text-align: center;">坦克大战</h3>
+            <div>zy_cwind@weixin</div>
+        </div>
+        <div style="margin-top: 10px; padding: 4px; background: rgba(0,0,0,0.2); border-radius: 4px;"><ul id="dc"></ul></div>
+        <div style="margin-top: 10px;">
+            <div style="float:right;">©版权所有,转载请注明出处</div>
+            <div style="clear:both;"></div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        var CONFIG = {
+            w: 10,
+            h: 20,
+            speed: 100
+        };
+
+        var Timer = function (ticks, callback) {
+            this.counter = this.ticks = ticks;
+            this.callback = callback;
+            Timer.queue.push(this);
+        };
+
+        Timer.prototype.tick = function () {
+            if (!--this.counter) {
+                this.counter = this.ticks;
+                this.callback();
+            }
+        }
+
+        Timer.prototype.stop = function () {
+            for (var i = 0; i < Timer.queue.length; i++) {
+                if (this == Timer.queue[i]) {
+                    Timer.queue.splice(i, 1);
+                    break;
+                }
+            }
+        };
+
+        Timer.step = function () {
+            var queue = Timer.queue.concat([]);
+            for (var i = 0; i < queue.length; i++) {
+                queue[i].tick();
+            }
+        };
+
+        Timer.queue = [];
+
+        var Sprite = function (parent, x, y, w, h) {
+            this.parent = parent;
+            this.x = x;
+            this.y = y;
+            this.w = w;
+            this.h = h;
+            this.children = [];
+            this.bitmapData = '0'.repeat(this.w * this.h);
+        };
+
+        Sprite.prototype.draw = function (parentBitmapData) {
+            var bitmapData = this.bitmapData;
+            $.each(this.children, function (i, child) {
+                bitmapData = child.draw(bitmapData);
+            });
+            var splitted = parentBitmapData.split('');
+            for (var i = 0; i < this.h; i++) {
+                for (var j = 0; j < this.w; j++) {
+                    if (bitmapData[i * this.w + j] == '1') {
+                        splitted[(this.y + i) * this.parent.w + this.x + j] = '1';
+                    }
+                }
+            }
+            return splitted.join('');
+        };
+
+        Sprite.prototype.hit = function () {
+            var bitmapData = this.draw('0'.repeat(this.parent.bitmapData.length));
+            for (var i = 0; i < this.parent.children.length; i++) {
+                if (this != this.parent.children[i]) {
+                    if (this.parent.children[i].draw(bitmapData).replace(/0/g, '') != bitmapData.replace(/0/g, '') + this.parent.children[i].draw('0'.repeat(this.parent.bitmapData.length)).replace(/0/g, '')) {
+                        return this.parent.children[i];
+                    }
+                }
+            }
+        };
+
+        Sprite.prototype.removeChild = function (child) {
+            for (var i = 0; i < this.children.length; i++) {
+                if (child == this.children[i]) {
+                    this.children.splice(i, 1);
+                    break;
+                }
+            }
+        };
+
+        Sprite.prototype.overflow = function () {
+            return this.x < 0 || this.y < 0 || this.x + this.w > this.parent.w || this.y + this.h > this.parent.h;
+        };
+
+        var Bullet = function (parent, x, y, direction) {
+            Sprite.call(this, parent, x, y, 1, 1);
+            this.direction = direction;
+            this.bitmapData = '1';
+            this.timer = new Timer(1, this.move.bind(this));
+        };
+
+        Bullet.prototype = new Sprite();
+
+        Bullet.prototype.move = function () {
+            var x = this.x;
+            var y = this.y;
+            var target;
+            switch (this.direction) {
+            case 0: this.x += 1; break;
+            case 1: this.x -= 1; break;
+            case 2: this.y += 1; break;
+            case 3: this.y -= 1; break;
+            }
+            if (this.overflow()) {
+                this.timer.stop();
+                this.parent.removeChild(this);
+            } else if (target = this.hit()) {
+                Bullet.hitEventHandler(this, target);
+            }
+        };
+
+        Bullet.hitEventHandler = function (bullet, target) {
+        };
+
+        var Tank = function (parent, x, y, direction) {
+            Sprite.call(this, parent, x, y, 3, 3);
+            this.direction = direction;
+            this.bitmapData = Tank.data[this.direction];
+        };
+
+        Tank.prototype = new Sprite();
+
+        Tank.prototype.fire = function () {
+            var position = [[3, 1], [-1, 1], [1, 3], [1, -1]][this.direction];
+            this.parent.children.push(new Bullet(this.parent, this.x + position[0], this.y + position[1], this.direction));
+        };
+
+        Tank.data = ['110011110', '011110011', '101111010', '010111101'];
+
+        var Enemy = function (parent, x, y) {
+            Tank.call(this, parent, x, y, parseInt(Math.random() * 4));
+            this.timer = new Timer(2, this.go.bind(this));
+        };
+
+        Enemy.prototype = new Tank();
+
+        Enemy.prototype.go = function () {
+            var x = this.x;
+            var y = this.y;
+            var direction = this.direction;
+            switch ([0, 1 , 2 , 3 , 4 , 4 , 4 , 4 , 5 , 5 , 5 , 5][parseInt(Math.random() * 12)]) {
+            case 0: this.direction = 0; break;
+            case 1: this.direction = 1; break;
+            case 2: this.direction = 2; break;
+            case 3: this.direction = 3; break;
+            case 4: switch (this.direction)
+            {
+                case 0: this.x += 1; break; 
+                case 1: this.x -= 1; break;
+                case 2: this.y += 1; break;
+                case 3: this.y -= 1; break;
+            }
+                break;
+            case 5: this.fire(); return;
+            }
+            if (this.overflow() || this.hit()) {
+                this.x = x;
+                this.y = y;
+                this.direction = direction;
+            } else {
+                this.bitmapData = Tank.data[this.direction];
+            }
+        };
+
+        var Gamer = function (parent) {
+            Tank.call(this, parent, parseInt((parent.w - 3) / 2), parseInt((parent.h - 3) / 2), 3);
+            this.timer = new Timer(1, this.flash.bind(this));
+        };
+
+        Gamer.prototype = new Tank();
+
+        Gamer.prototype.flash = function () {
+            var bitmapData = this.bitmapData.split('');
+            bitmapData[4] = bitmapData[4] == '0' ? '1' : '0';
+            this.bitmapData = bitmapData.join('');
+        };
+
+        var DC = function () {
+            Sprite.call(this, {w: CONFIG.w}, 0, 0, CONFIG.w, CONFIG.h);
+            Bullet.hitEventHandler = this.hitEventHandler.bind(this);
+            this.timer = new Timer(4, this.play.bind(this));
+            this.children.push(new Gamer(this));
+        };
+
+        DC.prototype = new Sprite();
+
+        DC.prototype.wear = function () {
+            var bitmapData = this.draw(this.bitmapData);
+            $('#dc').html('<li></li>'.repeat(bitmapData.length));
+            for (var i = 0; i < bitmapData.length; i++) {
+                if (bitmapData[i] == '1') {
+                    $('#dc>li').eq(i).addClass('active');
+                }
+            }
+        };
+
+        DC.prototype.play = function () {
+            var enemy = new Enemy(this, 0, 0);
+            var position = [[0, 0], [0, this.h - enemy.h], [this.w - enemy.w, 0], [this.w - enemy.w, this.h - enemy.h]][parseInt(Math.random() * 4)];
+            enemy.x = position[0];
+            enemy.y = position[1];
+            if (!enemy.hit()) {
+                this.children.push(enemy);
+            }
+        };
+
+        DC.prototype.hitEventHandler = function (bullet, target) {
+            bullet.timer.stop();
+            this.removeChild(bullet);
+        };
+
+        $(function () {
+            var dc = new DC();
+            var loop = function () {
+                Timer.step();
+                dc.wear();
+                setTimeout(loop, CONFIG.speed);
+            };
+            setTimeout(loop , CONFIG.speed);
+            loop();
+        });
+        
+    </script>
+</body>
+</html>
