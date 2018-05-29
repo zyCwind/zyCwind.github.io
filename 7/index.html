@@ -213,9 +213,7 @@
             var splitted = parentBitmapData.split('');
             for (var i = 0; i < this.h; i++) {
                 for (var j = 0; j < this.w; j++) {
-                    if (bitmapData[i * this.w + j] == '1') {
-                        splitted[(this.y + i) * this.parent.w + this.x + j] = '1';
-                    }
+                    splitted[(this.y + i) * this.parent.w + this.x + j] = bitmapData[i * this.w + j];
                 }
             }
             return splitted.join('');
@@ -303,7 +301,7 @@
             var position = [[3, 1], [-1, 1], [1, 3], [1, -1]][this.direction];
             var bullet = new Bullet(this.parent, this.x + position[0], this.y + position[1], this.direction);
             if (!bullet.overflow()) {
-                this.parent.children.push(bullet);
+                this.parent.children.unshift(bullet);
                 return bullet;
             }
             bullet.dispose();
@@ -451,7 +449,7 @@
                 enemy.x = position[0];
                 enemy.y = position[1];
                 if (!enemy.hit()) {
-                    this.children.push(enemy);
+                    this.children.unshift(enemy);
                 } else {
                     enemy.dispose();
                 }
