@@ -69,8 +69,6 @@
         }
         .button {
             height: 104px;
-            width: calc(50% - 52px);
-            float: left;
             position: relative;
         }
         .button div {
@@ -82,7 +80,7 @@
             top: 50%;
             left: 50%;
             margin-top: -24px;
-            margin-left: -24px;
+            margin-left: -50px;
             padding: 4px;
         }
         .button.active div {
@@ -126,23 +124,27 @@
                 <div id="pause" style="margin-top: 4px; font-size: 14px;">PAUSE</div>
                 <div id="game-over" style="margin-top: 4px;">GAME OVER</div>
             </div>
-            <div style="margin-top: 4px; padding: 4px; position: relative; background: #fff;">
-                <div style="width: 50%; float: left;">
+            <div style="margin-top: 4px; padding: 4px; background: #fff;">
+                <div id="pad" style="width: 50%; float: left; position: relative;">
+                    <div style="position: absolute; width: 32px; height: 32px; left: 50%; margin-left: -16px; top: 50%; margin-top: -16px; background-color: #000; border-radius: 50%;"></div>
                     <div style="position: relative; width: 100px; height: 100px; border-radius: 50%; overflow: hidden; border: #000 solid 2px; margin: auto;">
-                        <div style="box-sizing: border-box; border: transparent solid 50px; border-top-color: rgba(0, 0, 0, 0.2);"></div>
-                        <div style="position: absolute; width: 32px; height: 32px; left: 50%; margin-left: -16px; top: 50%; margin-top: -16px; background-color: #000; border-radius: 50%;"></div>
+                        <!--<div style="box-sizing: border-box; border: transparent solid 50px; border-top-color: rgba(0, 0, 0, 0.2);"></div>-->
                         <div style="position: absolute; width: 0; box-sizing: border-box; border: transparent solid 10px; border-right-color: #000; top: 50%; margin-top: -10px; left: 0;"></div>
                         <div style="position: absolute; width: 0; box-sizing: border-box; border: transparent solid 10px; border-left-color: #000; top: 50%; margin-top: -10px; right: 0;"></div>
                         <div style="position: absolute; width: 0; box-sizing: border-box; border: transparent solid 10px; border-bottom-color: #000; left: 50%; margin-left: -10px; top: 0;"></div>
                         <div style="position: absolute; width: 0; box-sizing: border-box; border: transparent solid 10px; border-top-color: #000; left: 50%; margin-left: -10px; bottom: 0;"></div>
                     </div>
                 </div>
-                <div id="fire-button" class="button" style="text-align: center;"><div></div></div>
-                <div style="clear: both;"></div>
-                <div style="position: absolute; right: 0; top: 0; overflow: hidden;">
-                    <div style="margin: 4px; padding: 4px; width: 44px; height: 14px; background: #000; border-radius: 4px; color: #fff; font-size: 10px; text-align: center; line-height: 14px;">RESET</div>
-                    <div style="margin: 4px; padding: 4px; width: 44px; height: 14px; background: #000; border-radius: 4px; color: #fff; font-size: 10px; text-align: center; line-height: 14px;">PAUSE</div>
+                <div style="width: 50%; position: relative; float: left;">
+                    <div id="fire-button" class="button">
+                        <div></div>
+                    </div>
+                    <div style="position: absolute; right: 0; top: 0;">
+                        <div style="padding: 4px; width: 44px; height: 14px; background: #000; border-radius: 4px; color: #fff; font-size: 10px; text-align: center; line-height: 14px;">RESET</div>
+                        <div style="margin-top: 4px; padding: 4px; width: 44px; height: 14px; background: #000; border-radius: 4px; color: #fff; font-size: 10px; text-align: center; line-height: 14px;">PAUSE</div>
+                    </div>
                 </div>
+                <div style="clear: both;"></div>
             </div>
         </div>
         <div style="margin-top: 10px;">
@@ -409,7 +411,7 @@
             $('#dc').html('<li></li>'.repeat(this.bitmapData.length));
             this.life = 4;
             this.totalPoint = 0;
-            Bullet.hitEventHandler = this.hitEventHandler.bind(this), /*new Pad($('#pad').get(0), this.onPressListener.bind(this)), */new Button($('#fire-button').get(0), this.onPressListener.bind(this));
+            Bullet.hitEventHandler = this.hitEventHandler.bind(this), new Pad($('#pad').get(0), this.onPressListener.bind(this)), new Button($('#fire-button').get(0), this.onPressListener.bind(this));
             this.bootup();
         };
 
@@ -516,18 +518,19 @@
             var $stick = $el.children().eq(0);
             var offset = {left: this.o.left, top: this.o.top};
             if (event.type != 'panend') {
-                var w = $el.width() - $stick.outerWidth(), h = $el.height() - $stick.outerHeight();
-                offset.left += event.deltaX, offset.top += event.deltaY;
-                offset.left = offset.left < 0 ? 0 : offset.left, offset.top = offset.top < 0 ? 0 : offset.top;
-                offset.left = offset.left > w ? w : offset.left, offset.top = offset.top > h ? h : offset.top;
+                var l = Math.sqrt(event.deltaX * event.deltaX + event.deltaY * event.deltaY);
+                var a = Math.atan2(event.deltaY, event.deltaX);
+                var max = (52 - $stick.outerWidth()) / 2;
+                l = l > max ? max : l;
+                console.log(max);
+                offset.left += Math.cos(a) * l, offset.top += Math.sin(a) * l;
                 this.direction = (function (a) {
-                    var oX = $el.width() / 2, oY = $el.height() / 2;
                     var limit = [];
-                    $.each([[-oX, -oY], [oX, -oY], [oX, oY], [-oX, oY]], function (i, offset) {
+                    $.each([[-1, -1], [1, -1], [1, 1], [-1, 1]], function (i, offset) {
                         limit.push(Math.atan2(offset[1], offset[0]));
                     });
                     if (limit[0] <= a && a < limit[1]) return 3; else if (limit[1] <= a && a < limit[2]) return 0; else if (limit[2] <= a && a < limit[3]) return 2; else return 1;
-                })(Math.atan2(event.deltaY, event.deltaX));
+                })(a);
             } else {
                 delete this.direction;
             }
