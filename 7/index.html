@@ -80,7 +80,7 @@
             top: 50%;
             left: 50%;
             margin-top: -24px;
-            margin-left: -50px;
+            margin-left: -24px;
             padding: 4px;
         }
         .button.active div {
@@ -98,6 +98,36 @@
         }
         #game-over.active, #pause.active {
             color: #000;
+        }
+        .arrow {
+            position: absolute;
+            width: 0;
+            box-sizing: border-box;
+            border: transparent solid 10px; 
+        }
+        .padbg {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: #000 solid 2px;
+            margin: auto;
+        }
+        .padbg-shadow {
+            box-sizing: border-box;
+            border: transparent solid 50px; 
+        }
+        #stick {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            left: 50%;
+            margin-left: -16px;
+            top: 50%;
+            margin-top: -16px;
+            background-color: #000;
+            border-radius: 50%;
         }
     </style>
 </head>
@@ -125,24 +155,21 @@
                 <div id="game-over" style="margin-top: 4px;">GAME OVER</div>
             </div>
             <div style="margin-top: 4px; padding: 4px; background: #fff;">
-                <div id="pad" style="width: 50%; float: left; position: relative;">
-                    <div style="position: absolute; width: 32px; height: 32px; left: 50%; margin-left: -16px; top: 50%; margin-top: -16px; background-color: #000; border-radius: 50%;"></div>
-                    <div style="position: relative; width: 100px; height: 100px; border-radius: 50%; overflow: hidden; border: #000 solid 2px; margin: auto;">
-                        <!--<div style="box-sizing: border-box; border: transparent solid 50px; border-top-color: rgba(0, 0, 0, 0.2);"></div>-->
-                        <div style="position: absolute; width: 0; box-sizing: border-box; border: transparent solid 10px; border-right-color: #000; top: 50%; margin-top: -10px; left: 0;"></div>
-                        <div style="position: absolute; width: 0; box-sizing: border-box; border: transparent solid 10px; border-left-color: #000; top: 50%; margin-top: -10px; right: 0;"></div>
-                        <div style="position: absolute; width: 0; box-sizing: border-box; border: transparent solid 10px; border-bottom-color: #000; left: 50%; margin-left: -10px; top: 0;"></div>
-                        <div style="position: absolute; width: 0; box-sizing: border-box; border: transparent solid 10px; border-top-color: #000; left: 50%; margin-left: -10px; bottom: 0;"></div>
+                <div id="pad" style="width: 40%; float: left; position: relative;">
+                    <div id="stick"></div>
+                    <div class="padbg">
+                        <div class="padbg-shadow"></div>
+                        <div class="arrow" style="border-right-color: #000; top: 50%; margin-top: -10px; left: 0;"></div>
+                        <div class="arrow" style="border-left-color: #000; top: 50%; margin-top: -10px; right: 0;"></div>
+                        <div class="arrow" style="border-bottom-color: #000; left: 50%; margin-left: -10px; top: 0;"></div>
+                        <div class="arrow" style="border-top-color: #000; left: 50%; margin-left: -10px; bottom: 0;"></div>
                     </div>
                 </div>
-                <div style="width: 50%; position: relative; float: left;">
-                    <div id="fire-button" class="button">
-                        <div></div>
-                    </div>
-                    <div style="position: absolute; right: 0; top: 0;">
-                        <div style="padding: 4px; width: 44px; height: 14px; background: #000; border-radius: 4px; color: #fff; font-size: 10px; text-align: center; line-height: 14px;">RESET</div>
-                        <div style="margin-top: 4px; padding: 4px; width: 44px; height: 14px; background: #000; border-radius: 4px; color: #fff; font-size: 10px; text-align: center; line-height: 14px;">PAUSE</div>
-                    </div>
+                <div style="width: 30%; float: left;">
+                    <div class="button"><div></div></div>
+                </div>
+                <div style="width: 30%; float: left;">
+                    <div id="fire-button" class="button"><div></div></div>
                 </div>
                 <div style="clear: both;"></div>
             </div>
@@ -236,6 +263,7 @@
         };
 
         Sprite.prototype.removeChild = function (child) {
+            child.dispose();
             for (var i = 0; i < this.children.length; i++) {
                 if (child == this.children[i]) {
                     this.children.splice(i, 1);
@@ -274,7 +302,6 @@
             case 3: this.y -= 1; break;
             }
             if (this.overflow()) {
-                this.dispose();
                 this.parent.removeChild(this);
             } else if (target = this.hit()) {
                 Bullet.hitEventHandler(this, target);
@@ -410,7 +437,7 @@
             this.life = 4;
             this.totalPoint = 0;
             Bullet.hitEventHandler = this.hitEventHandler.bind(this), new Pad($('#pad').get(0), this.onPressListener.bind(this)), new Button($('#fire-button').get(0), this.onPressListener.bind(this));
-            this.bootup();
+            this.setupLevel();
         };
 
         DC.prototype = new Sprite();
@@ -436,10 +463,21 @@
             }
         };
 
-        DC.prototype.bootup = function () {
+        DC.prototype.setupLevel = function () {
+            delete this.stopped;
             this.gamer = new Gamer(this);
-            this.children.push(this.gamer);
+            this.children = [this.gamer];
             this.timer = new Timer(4, this.ai.bind(this));
+        };
+
+        DC.prototype.stop = function () {
+            this.timer.stop();
+            $.each(this.children, function (i, child) {
+                if (child instanceof Enemy || child instanceof Bullet) {
+                    child.timer.stop();
+                }
+            });
+            this.stopped = true;
         };
 
         DC.prototype.ai = function () {
@@ -457,32 +495,22 @@
         };
 
         DC.prototype.hitEventHandler = function (bullet, target) {
-            bullet.dispose();
             this.removeChild(bullet);
             if (target instanceof Bullet) {
-                target.dispose();
                 this.removeChild(target);
             } else if (target instanceof Gamer) {
                 target.dead();
-                this.timer.stop();
-                $.each(this.children, function (i, child) {
-                    if (child instanceof Enemy || child instanceof Bullet) {
-                        child.timer.stop();
-                    }
-                });
+                this.stop();
                 if (!--this.life) {
                     this.gameOver = true;
                 } else {
                     this.timer = new Timer(32, function () {
-                        this.timer.stop();
                         this.dispose();
-                        this.children.length = 0;
-                        this.bootup();
+                        this.setupLevel();
                     }.bind(this));
                 }
             } else if (target instanceof Enemy) {
                 if (bullet.isFromGamer) {
-                    target.dispose();
                     this.removeChild(target);
                     this.totalPoint += 500;
                 }
@@ -490,12 +518,17 @@
         };
 
         DC.prototype.onPressListener = function (action) {
-            if (this.gamer.alive) {
+            if (!this.stopped) {
                 if (action <= 3 && this.gamer.direction == action) {
                     action = 4;
                 }
                 this.gamer.go(action);
             }
+        };
+
+        DC.prototype.dispose = function () {
+            this.timer.stop();
+            Sprite.prototype.dispose.call(this);
         };
 
         var Pad = function (el, onPressListener) {
@@ -506,7 +539,7 @@
             mc.on("panstart panmove panend", this.onPan.bind(this));
             this.el = el;
             this.onPressListener = onPressListener;
-            this.timer = new Timer(4, this.dispatch.bind(this));
+            this.timer = new Timer(2, this.dispatch.bind(this));
             this.o = $el.children().eq(0).offset();
             this.o = {left: this.o.left - offset.left, top: this.o.top - offset.top};
         };
@@ -514,21 +547,27 @@
         Pad.prototype.onPan = function (event) {
             var $el = $(this.el);
             var $stick = $el.children().eq(0);
+            var $direction = $el.children().eq(1).children().eq(0);
             var offset = {left: this.o.left, top: this.o.top};
+            $direction.attr('style', '');
             if (event.type != 'panend') {
-                var l = Math.sqrt(event.deltaX * event.deltaX + event.deltaY * event.deltaY);
+                var m = ($el.height() - $stick.outerHeight()) / 2, l = Math.sqrt(event.deltaX * event.deltaX + event.deltaY * event.deltaY);
                 var a = Math.atan2(event.deltaY, event.deltaX);
-                var max = (52 - $stick.outerWidth()) / 2;
-                l = l > max ? max : l;
-                console.log(max);
-                offset.left += Math.cos(a) * l, offset.top += Math.sin(a) * l;
+                l = l > m ? m : l;
+                switch(
                 this.direction = (function (a) {
                     var limit = [];
                     $.each([[-1, -1], [1, -1], [1, 1], [-1, 1]], function (i, offset) {
                         limit.push(Math.atan2(offset[1], offset[0]));
                     });
                     if (limit[0] <= a && a < limit[1]) return 3; else if (limit[1] <= a && a < limit[2]) return 0; else if (limit[2] <= a && a < limit[3]) return 2; else return 1;
-                })(a);
+                })(a)) {
+                case 0: $direction.css('border-right-color', 'rgba(0, 0, 0, 0.1)'); break;
+                case 1: $direction.css('border-left-color', 'rgba(0, 0, 0, 0.1)'); break;
+                case 2: $direction.css('border-bottom-color', 'rgba(0, 0, 0, 0.1)'); break;
+                case 3: $direction.css('border-top-color', 'rgba(0, 0, 0, 0.1)'); break;
+                }
+                offset.left += Math.cos(a) * l, offset.top += Math.sin(a) * l;
             } else {
                 delete this.direction;
             }
