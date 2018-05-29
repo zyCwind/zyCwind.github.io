@@ -68,8 +68,8 @@
             opacity: 0;
         }
         .button {
-            height: 80px;
-            width: 50%;
+            height: 104px;
+            width: calc(50% - 52px);
             float: left;
             position: relative;
         }
@@ -106,7 +106,7 @@
 <body>
     <div class="container">
         <div style="margin-top: 10px;">
-            <h3 style="text-align: center;">坦克大战</h3>
+            <h3 style="text-align: center; display: none;">坦克大战</h3>
             <div>zy_cwind@weixin</div>
         </div>
         <div class="group" style="position: relative;">
@@ -114,23 +114,36 @@
             <div style="width: 108px; position:absolute; right: 4px; top: 0; height: 100%; text-align: center;">
                 <div id="total-point" style="margin-top: 4px; font-size: 18px;"></div>
                 <div style="font-size: 14px; color: rgba(0, 0, 0, 0.1);">HI-<span style="font-size: 14px; color: #000;">SCORE</span>&nbsp;♬</div>
-                <div style="margin-top: 8px;">
-                    <ul id="life" class="dot" style="width: 80px; margin: auto;"><li></li><li></li><li></li><li></li><li class="hidden"></li><li></li><li></li><li class="hidden"></li><li class="hidden"></li><li></li><li></li><li class="hidden"></li><li class="hidden"></li><li></li><li></li><li class="hidden"></li></ul>
+                <div style="margin-top: 10px;">
+                    <ul id="life" class="dot" style="width: 80px; margin: auto;"><li></li><li></li><li></li><li></li><li class="hidden"></li><li></li><li></li><li class="hidden"></li><li class="hidden"></li><li></li><li></li><li class="hidden"></li></ul>
                 </div>
-                <div style="margin-top: 8px;">
+                <div style="margin-top: 10px;">
                     <div style="font-size: 18px; width: 50%; float: left;"><span style="font-size: 18px; color: rgba(0, 0, 0, 0.1);">1</span>0<div style="font-size: 14px;">SPEED</div></div>
                     <div style="font-size: 18px; width: 50%; float: left;"><span style="font-size: 18px; color: rgba(0, 0, 0, 0.1);">1</span>0<div style="font-size: 14px;">LEVEL</div></div>
                     <div style="clear: both;"></div>
                 </div>
-                <div style="margin-top: 4px;"><img src="images/1.png" style="width: 100%;" /></div>
+                <div style="margin-top: 10px;"><img src="images/1.png" style="width: 100%;" /></div>
                 <div id="pause" style="margin-top: 4px; font-size: 14px;">PAUSE</div>
                 <div id="game-over" style="margin-top: 4px;">GAME OVER</div>
             </div>
-        </div>
-        <div class="group">
-            <div id="pad" class="button"><div></div></div>
-            <div id="fire-button" class="button" style="text-align: center;"><div></div></div>
-            <div style="clear: both;"></div>
+            <div style="margin-top: 4px; padding: 4px; position: relative; background: #fff;">
+                <div style="width: 50%; float: left;">
+                    <div style="position: relative; width: 100px; height: 100px; border-radius: 50%; overflow: hidden; border: #000 solid 2px; margin: auto;">
+                        <div style="box-sizing: border-box; border: transparent solid 50px; border-top-color: rgba(0, 0, 0, 0.2);"></div>
+                        <div style="position: absolute; width: 32px; height: 32px; left: 50%; margin-left: -16px; top: 50%; margin-top: -16px; background-color: #000; border-radius: 50%;"></div>
+                        <div style="position: absolute; width: 0; box-sizing: border-box; border: transparent solid 10px; border-right-color: #000; top: 50%; margin-top: -10px; left: 0;"></div>
+                        <div style="position: absolute; width: 0; box-sizing: border-box; border: transparent solid 10px; border-left-color: #000; top: 50%; margin-top: -10px; right: 0;"></div>
+                        <div style="position: absolute; width: 0; box-sizing: border-box; border: transparent solid 10px; border-bottom-color: #000; left: 50%; margin-left: -10px; top: 0;"></div>
+                        <div style="position: absolute; width: 0; box-sizing: border-box; border: transparent solid 10px; border-top-color: #000; left: 50%; margin-left: -10px; bottom: 0;"></div>
+                    </div>
+                </div>
+                <div id="fire-button" class="button" style="text-align: center;"><div></div></div>
+                <div style="clear: both;"></div>
+                <div style="position: absolute; right: 0; top: 4px; width: 52px; overflow: hidden;">
+                    <div style="margin: 4px; padding: 4px; background: #000; border-radius: 4px; color: #fff; font-size: 10px;">RESET</div>
+                    <div style="margin: 4px; padding: 4px; background: #000; border-radius: 4px; color: #fff; font-size: 10px;">PAUSE</div>
+                </div>
+            </div>
         </div>
         <div style="margin-top: 10px;">
             <div style="float:right;">©版权所有,转载请注明出处</div>
@@ -396,7 +409,7 @@
             $('#dc').html('<li></li>'.repeat(this.bitmapData.length));
             this.life = 4;
             this.totalPoint = 0;
-            Bullet.hitEventHandler = this.hitEventHandler.bind(this), new Pad($('#pad').get(0), this.onPressListener.bind(this)), new Button($('#fire-button').get(0), this.onPressListener.bind(this));
+            Bullet.hitEventHandler = this.hitEventHandler.bind(this), /*new Pad($('#pad').get(0), this.onPressListener.bind(this)), */new Button($('#fire-button').get(0), this.onPressListener.bind(this));
             this.bootup();
         };
 
