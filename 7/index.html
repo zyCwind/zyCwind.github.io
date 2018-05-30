@@ -606,7 +606,6 @@
         var LevelOne = function (scene, onEnd) {
             Level.call(this, scene, onEnd);
             this.scene.children.unshift(this.player = new Player(this.scene));
-            this.hit = 0;
             this.enemyCount = 0;
             this.timer = new Timer(1, this.generateEnemy.bind(this));
         };
@@ -654,7 +653,7 @@
                 state.totalPoint += 500;
                 this.scene.removeChild(target);
                 this.enemyCount--;
-                if (++this.hit == 20) this.onEnd();
+                if (!(state.totalPoint % 10000)) this.onEnd();
             }
         };
 
@@ -667,7 +666,6 @@
             this.scene.children.unshift(new Boss(this.scene));
             this.scene.children.unshift(this.player = new Player(this.scene));
             this.player.y = this.scene.h - this.player.h;
-            this.hit = 0;
         };
 
         LevelTwo.prototype = new Level();
@@ -697,7 +695,7 @@
                 target.dead();
             } else if (target instanceof Boss && bullet.x == target.x + parseInt(target.w / 2)) {
                 target.bitmapData = Boss.data[1], state.totalPoint += 500;
-                if (++this.hit == 20) this.onEnd();
+                if (!(state.totalPoint % 10000)) this.onEnd();
             }
         };
 
