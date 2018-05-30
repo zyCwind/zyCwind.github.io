@@ -566,8 +566,11 @@
                 if (event.type == 'press') {
                     $(el).addClass('active');
                     this.pressed = 0;
-                    this.timer.count = this.timer.ticks;
-                    this.dispatch();
+                    if (!Core.getState().paused) {
+                        this.timer.count = 1;
+                    } else {
+                        this.timer.count = 0, this.dispatch();
+                    }
                 } else {
                     $(el).removeClass('active');
                     delete this.pressed;
@@ -731,17 +734,13 @@
                 this.state.frozen = false;
                 this.level = this.level instanceof LevelOne ? new LevelOne(this.scene, this.onEnd.bind(this)) : new LevelTwo(this.scene, this.onEnd.bind(this));
             } else {
-                this.state.frozen = false, this.state.level = this.state.level < 9 ? this.state.level + 1 : this.state.level;
+                this.state.frozen = false, this.state.level = this.state.level < 9 ? this.state.level + 1 : 9;
                 this.level = this.level instanceof LevelOne ? new LevelTwo(this.scene, this.onEnd.bind(this)) : new LevelOne(this.scene, this.onEnd.bind(this));
             }
         };
 
         Core.prototype.onPress = function (keyCode) {
-            if (keyCode == 6) {
-                this.state.paused = !this.state.paused;
-            } else if (!this.state.paused) {
-                this.level.onPress(keyCode);
-            }
+            if (keyCode == 6) this.state.paused = !this.state.paused; else if (!this.state.paused) this.level.onPress(keyCode);
         };
 
         $(function () {
@@ -752,9 +751,7 @@
             };
             loop = function () {
                 dc.flush();
-                if (!Core.getState().paused) {
-                    Timer.tick();
-                }
+                if (!Core.getState().paused) Timer.tick();
                 setTimeout(loop, CONSTANT.speed);
             };
             setTimeout(loop , CONSTANT.speed);
