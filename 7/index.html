@@ -19,11 +19,13 @@
             width: 320px;
             margin: auto;
         }
-        .group {
+        #screen {
             padding: 4px;
             background: rgba(0, 0, 0, 0.2);
             border-radius: 4px;
             margin-top: 10px;
+            border: #000 solid 1px;
+            position: relative;
         }
         .dot {
             list-style-type: none;
@@ -68,8 +70,10 @@
             opacity: 0;
         }
         .button {
+            width: 48px;
             height: 104px;
             position: relative;
+            float: left;
         }
         .button div {
             border: rgba(0, 0, 0, 0.1) solid 2px;
@@ -93,11 +97,8 @@
             border-radius: 50%;
             content: '';
         }
-        #game-over, #pause {
-            color: rgba(0, 0, 0, 0.1); 
-        }
-        #game-over.active, #pause.active {
-            color: #000;
+        .active {
+            color: #000 !important;
         }
         .arrow {
             position: absolute;
@@ -105,7 +106,7 @@
             box-sizing: border-box;
             border: transparent solid 10px; 
         }
-        .padbg {
+        #pad .bg {
             position: relative;
             width: 100px;
             height: 100px;
@@ -114,7 +115,7 @@
             border: #000 solid 2px;
             margin: auto;
         }
-        .padbg-shadow {
+        #pad .bg-shadow {
             box-sizing: border-box;
             border: transparent solid 50px; 
         }
@@ -129,6 +130,14 @@
             background-color: #000;
             border-radius: 50%;
         }
+        #speed, #level {
+            font-size: 18px;
+            width: 50%;
+            float: left;
+        }
+        #speed, #level, #paused, #end {
+            color: rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
 <body>
@@ -137,39 +146,36 @@
             <h3 style="text-align: center; display: none;">坦克大战</h3>
             <div>zy_cwind@weixin</div>
         </div>
-        <div class="group" style="position: relative;">
+        <div id="screen">
             <ul id="dc" class="dot"></ul>
-            <div style="width: 108px; position:absolute; right: 4px; top: 0; height: 100%; text-align: center;">
+            <div style="width: 106px; position:absolute; right: 4px; top: 0; height: 100%; text-align: center;">
                 <div id="total-point" style="margin-top: 4px; font-size: 18px;"></div>
-                <div style="font-size: 14px; color: rgba(0, 0, 0, 0.1);">HI-<span style="font-size: 14px; color: #000;">SCORE</span>&nbsp;♬</div>
+                <div style="font-size: 14px; color: rgba(0, 0, 0, 0.1);">HI-<span class="active" style="font-size: 14px;">SCORE</span>&nbsp;♬</div>
                 <div style="margin-top: 10px;">
-                    <ul id="life" class="dot" style="width: 80px; margin: auto;"><li></li><li></li><li></li><li></li><li class="hidden"></li><li></li><li></li><li class="hidden"></li><li class="hidden"></li><li></li><li></li><li class="hidden"></li></ul>
+                    <ul id="lifes" class="dot" style="width: 80px; margin: auto;"><li></li><li></li><li></li><li></li><li class="hidden"></li><li></li><li></li><li class="hidden"></li><li class="hidden"></li><li></li><li></li><li class="hidden"></li></ul>
                 </div>
                 <div style="margin-top: 10px;">
-                    <div style="font-size: 18px; width: 50%; float: left;"><span style="font-size: 18px; color: rgba(0, 0, 0, 0.1);">1</span>0<div style="font-size: 14px;">SPEED</div></div>
-                    <div style="font-size: 18px; width: 50%; float: left;"><span style="font-size: 18px; color: rgba(0, 0, 0, 0.1);">1</span>0<div style="font-size: 14px;">LEVEL</div></div>
+                    <div id="speed">1<span class="active" style="font-size: 18px;">0</span><div class="active" style="font-size: 14px;">SPEED</div></div>
+                    <div id="level">1<span class="active" style="font-size: 18px;">0</span><div class="active" style="font-size: 14px;">LEVEL</div></div>
                     <div style="clear: both;"></div>
                 </div>
                 <div style="margin-top: 10px;"><img src="images/1.png" style="width: 100%;" /></div>
-                <div id="pause" style="margin-top: 4px; font-size: 14px;">PAUSE</div>
-                <div id="game-over" style="margin-top: 4px;">GAME OVER</div>
+                <div id="paused" style="margin-top: 4px; font-size: 14px;">PAUSE</div>
+                <div id="end" style="margin-top: 4px;">GAME OVER</div>
             </div>
-            <div style="margin-top: 4px; padding: 4px; background: #fff;">
-                <div id="pad" style="width: 40%; float: left; position: relative;">
+            <div style="margin-top: 4px; padding: 4px; background: #fff; border-radius: 4px;">
+                <div id="pad" style="width: 50%; float: left; position: relative;">
                     <div id="stick"></div>
-                    <div class="padbg">
-                        <div class="padbg-shadow"></div>
-                        <div class="arrow" style="border-right-color: #000; top: 50%; margin-top: -10px; left: 0;"></div>
-                        <div class="arrow" style="border-left-color: #000; top: 50%; margin-top: -10px; right: 0;"></div>
-                        <div class="arrow" style="border-bottom-color: #000; left: 50%; margin-left: -10px; top: 0;"></div>
-                        <div class="arrow" style="border-top-color: #000; left: 50%; margin-left: -10px; bottom: 0;"></div>
+                    <div class="bg">
+                        <div id="shadow" class="bg-shadow"></div>
+                        <div class="arrow" style="border-right-color: #000; top: 50%; margin-top: -10px; left: 0;"></div><div class="arrow" style="border-left-color: #000; top: 50%; margin-top: -10px; right: 0;"></div><div class="arrow" style="border-bottom-color: #000; left: 50%; margin-left: -10px; top: 0;"></div><div class="arrow" style="border-top-color: #000; left: 50%; margin-left: -10px; bottom: 0;"></div>
                     </div>
                 </div>
-                <div style="width: 30%; float: left;">
-                    <div class="button"><div></div></div>
-                </div>
-                <div style="width: 30%; float: left;">
-                    <div id="fire-button" class="button"><div></div></div>
+                <div style="width: 50%; float: left;">
+                    <div style="width: 100px; margin: auto;">
+                        <div class="button"><div></div></div>
+                        <div id="fire-button" class="button" style="margin-left: 4px;"><div></div></div>
+                    </div>
                 </div>
                 <div style="clear: both;"></div>
             </div>
@@ -180,26 +186,28 @@
         </div>
     </div>
     <script type="text/javascript">
-        var CONFIG = {
+        var CONSTANT = {
             w: 10,
             h: 20,
             speed: 100
         };
 
-        var Timer = function (ticks, callback) {
-            this.counter = this.ticks = ticks;
-            this.callback = callback;
+        var Timer = function (ticks, onTime) {
+            this.ticks = ticks, this.onTime = onTime, this.count = this.ticks, this.stopped = false;
             Timer.queue.push(this);
         };
 
         Timer.prototype.tick = function () {
-            if (!--this.counter) {
-                this.counter = this.ticks;
-                this.callback();
+            if (!this.stopped) {
+                if (!--this.count) {
+                    this.count = this.ticks;
+                    this.onTime();
+                }
             }
         }
 
         Timer.prototype.stop = function () {
+            this.stopped = true;
             for (var i = 0; i < Timer.queue.length; i++) {
                 if (this == Timer.queue[i]) {
                     Timer.queue.splice(i, 1);
@@ -208,7 +216,7 @@
             }
         };
 
-        Timer.step = function () {
+        Timer.tick = function () {
             var queue = Timer.queue.concat();
             for (var i = 0; i < queue.length; i++) {
                 queue[i].tick();
@@ -227,9 +235,9 @@
             this.bitmapData = '0'.repeat(this.w * this.h);
         };
 
-        Sprite.prototype.draw = function (parentBitmapData, fullFill = false) {
+        Sprite.prototype.draw = function (parentBitmapData, fill) {
             var bitmapData;
-            if (fullFill) {
+            if (fill) {
                 bitmapData = '1'.repeat(this.bitmapData.length);
             } else {
                 bitmapData = this.bitmapData;
@@ -240,18 +248,16 @@
             var splitted = parentBitmapData.split('');
             for (var i = 0; i < this.h; i++) {
                 for (var j = 0; j < this.w; j++) {
-                    splitted[(this.y + i) * this.parent.w + this.x + j] = bitmapData[i * this.w + j];
+                    var d = bitmapData[i * this.w + j];
+                    if (d != '2') {
+                        splitted[(this.y + i) * this.parent.w + this.x + j] = d;
+                    }
                 }
             }
             return splitted.join('');
         };
 
         Sprite.prototype.hit = function () {
-            /**
-             * 碰撞检测区域为矩形
-             *
-             *
-             */
             var bitmapData = this.draw('0'.repeat(this.parent.bitmapData.length), true);
             for (var i = 0; i < this.parent.children.length; i++) {
                 if (this != this.parent.children[i]) {
@@ -292,19 +298,21 @@
         Bullet.prototype = new Sprite();
 
         Bullet.prototype.move = function () {
-            var x = this.x;
-            var y = this.y;
-            var target;
-            switch (this.direction) {
-            case 0: this.x += 1; break;
-            case 1: this.x -= 1; break;
-            case 2: this.y += 1; break;
-            case 3: this.y -= 1; break;
-            }
-            if (this.overflow()) {
-                this.parent.removeChild(this);
-            } else if (target = this.hit()) {
-                Bullet.hitEventHandler(this, target);
+            if (!Core.getState().frozen) {
+                var x = this.x;
+                var y = this.y;
+                var target;
+                switch (this.direction) {
+                case 0: this.x += 1; break;
+                case 1: this.x -= 1; break;
+                case 2: this.y += 1; break;
+                case 3: this.y -= 1; break;
+                }
+                if (this.overflow()) {
+                    this.parent.removeChild(this);
+                } else if (target = this.hit()) {
+                    Bullet.hitEventHandler(this, target);
+                }
             }
         };
 
@@ -339,7 +347,7 @@
             this.bitmapData = Tank.data[direction];
         };
 
-        Tank.prototype.go = function (action) {
+        Tank.prototype.go = function (action, d) {
             var x = this.x;
             var y = this.y;
             var direction = this.direction;
@@ -348,15 +356,15 @@
             case 1: this.setDirection(1); break;
             case 2: this.setDirection(2); break;
             case 3: this.setDirection(3); break;
-            case 4: switch (this.direction)
+            case 4: switch (d != undefined ? d : this.direction)
             {
-                case 0: this.x += 1; break; 
+                case 0: this.x += 1; break;
                 case 1: this.x -= 1; break;
                 case 2: this.y += 1; break;
                 case 3: this.y -= 1; break;
             }
                 break;
-            case 5: this.fire(); return;
+            case 5: return this.fire();
             }
             if (this.overflow() || this.hit()) {
                 this.x = x;
@@ -370,248 +378,389 @@
         var Enemy = function (parent, x, y) {
             Tank.call(this, parent, x, y, parseInt(Math.random() * 4));
             this.timer = new Timer(4, this.ai.bind(this));
-            Enemy.count++;
         };
 
         Enemy.prototype = new Tank();
 
         Enemy.prototype.ai = function () {
-            this.go([0, 1 , 2 , 3 , 4 , 4 , 4 , 4 , 5 , 5 , 5 , 5][parseInt(Math.random() * 12)]);
+            if (! Core.getState().frozen) {
+                this.go([0, 1, 2, 3, 4, 4, 4, 4, 5, 5, 5, 5][parseInt(Math.random() * 12)]);
+            }
         };
 
         Enemy.prototype.dispose = function () {
             this.timer.stop();
-            Enemy.count--;
         };
 
-        Enemy.count = 0;
-
-        var Gamer = function (parent) {
+        var Player = function (parent) {
             Tank.call(this, parent, parseInt((parent.w - 3) / 2), parseInt((parent.h - 3) / 2), 3);
-            this.timer = new Timer(1, this.mark.bind(this));
-            this.alive = true;
+            this.timer = new Timer(1, this.next.bind(this));
+            this.state = 0;
         };
 
-        Gamer.prototype = new Tank();
+        Player.prototype = new Tank();
 
-        Gamer.prototype.mark = function () {
-            if (this.alive) {
-                var bitmapData = this.bitmapData.split('');
-                bitmapData[4] = bitmapData[4] == '0' ? '1' : '0';
-                this.bitmapData = bitmapData.join('');
-            } else {
-                this.bitmapData = this.bitmapData == Gamer.data[0] ? Gamer.data[1] : Gamer.data[0];
+        Player.prototype.next = function () {
+            if (!this.state) {
+                var splitted = this.bitmapData.split('');
+                splitted[4] = splitted[4] == '0' ? '1' : '0', this.bitmapData = splitted.join('');
+                return;
             }
+            this.bitmapData = this.bitmapData == Player.data[0] ? Player.data[1] : Player.data[0];
         };
 
-        Gamer.prototype.fire = function () {
-            if (this.alive) {
-                var bullet = Tank.prototype.fire.call(this);
-                if (bullet) {
-                    bullet.isFromGamer = true;
-                }
+        Player.prototype.go = function (action, d) {
+            var bullet = Tank.prototype.go.call(this, action, d);
+            if (bullet) {
+                bullet.isFromPlayer = true;
             }
         }
 
-        Gamer.prototype.dead = function () {
-            delete this.alive;
+        Player.prototype.dead = function () {
+            this.state = 1;
             this.w = 4;
             this.h = 4;
             this.x = this.x + this.w > this.parent.w ? this.parent.w - this.w : this.x;
             this.y = this.y + this.h > this.parent.h ? this.parent.h - this.h : this.y;
-            this.bitmapData = Gamer.data[0];
-            this.timer.counter = this.timer.ticks = 4;
+            this.bitmapData = Player.data[0];
+            this.timer.count = this.timer.ticks = 4;
         };
 
-        Gamer.prototype.dispose = function () {
+        Player.prototype.dispose = function () {
             this.timer.stop();
         };
 
-        Gamer.data = ['1001011001101001', '0'.repeat(16)];
+        Player.data = ['1001011001101001', '0'.repeat(16)];
+
+        var Boss = function (parent) {
+            Sprite.call(this, parent, parseInt((parent.w - 7) / 2), 0, 7, 8);
+            this.bitmapData = Boss.data[0];
+            this.timer = new Timer(8, this.ai.bind(this));
+            this.i = 0;
+        };
+
+        Boss.prototype = new Sprite();
+
+        Boss.prototype.fire = function () {
+            var bullet = new Bullet(this.parent, this.x + parseInt(this.w / 2), this.h, 2);
+            if (!bullet.overflow()) {
+                this.parent.children.unshift(bullet);
+                return bullet;
+            }
+            bullet.dispose();
+        };
+
+        Boss.prototype.ai = function () {
+            this.bitmapData = Boss.data[0];
+            if (!Core.getState().frozen) {
+                if (!this.i) {
+                    if (this.x < this.parent.w - this.w) this.x++; else this.i = 1;
+                } else {
+                    if (this.x > 0) this.x--; else this.i = 0;
+                }
+                if (!parseInt(Math.random() * 2)) {
+                    this.fire();
+                }
+            }
+        };
+
+        Boss.prototype.dispose = function () {
+            this.timer.stop();
+        };
+
+        Boss.data = ['11000110100010101110101101101011101010101011010110001000', '0'.repeat(56)];
+
+        var End = function (parent, onStop) {
+            Sprite.call(this, parent, 0, 0, CONSTANT.w, CONSTANT.h);
+            this.onStop = onStop;
+            this.timer = new Timer(1, this.next.bind(this));
+            this.position = [0, 0, this.w - 1, this.h - 1];
+            this.i = 0;
+            this.pX = this.position[0];
+            this.pY = this.position[3];
+            this.count = 0;
+            this.bitmapData = '2'.repeat(this.bitmapData.length);
+        };
+
+        End.prototype = new Sprite();
+
+        End.prototype.next = function () {
+            if (this.count++ < this.bitmapData.length) {
+                var splitted = this.bitmapData.split('');
+                splitted[this.pY * this.w + this.pX] = '1';
+                this.bitmapData = splitted.join('');
+                switch (this.i) {case 0: if (this.pY-- == this.position[1]) this.i = 1, this.pY = this.position[1], this.pX++; break; case 1: if (this.pX++ == this.position[2]) this.i = 2, this.pX = this.position[2], this.pY++; break; case 2: if (this.pY++ == this.position[3]) this.i = 3, this.pY = this.position[3], this.pX--, this.position[0]++, this.position[1]++, this.position[2]--, this.position[3]--; break; case 3: if (this.pX-- == this.position[0]) this.i = 0, this.pX = this.position[0], this.pY--; break;}
+            } else {
+                this.parent.removeChild(this);
+                this.onStop();
+            }
+        };
+
+        End.prototype.dispose = function () {
+            this.timer.stop();
+        };
 
         var DC = function () {
             Sprite.call(this, {
-                w: CONFIG.w
-            }, 0, 0, CONFIG.w, CONFIG.h);
+                w: CONSTANT.w
+            }, 0, 0, CONSTANT.w, CONSTANT.h);
             $('#dc').html('<li></li>'.repeat(this.bitmapData.length));
-            this.life = 4;
-            this.totalPoint = 0;
-            Bullet.hitEventHandler = this.hitEventHandler.bind(this), new Pad($('#pad').get(0), this.onPressListener.bind(this)), new Button($('#fire-button').get(0), this.onPressListener.bind(this));
-            this.setupLevel();
         };
 
         DC.prototype = new Sprite();
 
-        DC.prototype.wear = function () {
+        DC.prototype.flush = function () {
             var bitmapData = this.draw(this.bitmapData);
-            var $dc = $('#dc>li');
-            var $life = $('#life>li');
-            var totalPoint = this.totalPoint.toString();
-            $dc.removeClass('active');
-            for (var i = 0; i < bitmapData.length; i++) {
-                if (bitmapData[i] == '1') {
-                    $dc.eq(i).addClass('active');
-                }
-            }
-            $life.removeClass('active');
-            for (var i = 0; i < this.life; i++) {
-                $life.eq(i).addClass('active');
-            }
+            var state = Core.getState();
+            var totalPoint = state.totalPoint.toString();
+            $('#dc>li').removeClass('active'); for (var i = 0; i < bitmapData.length; i++) if (bitmapData[i] == '1') $('#dc>li').eq(i).addClass('active');
             $('#total-point').text(totalPoint.length < 6 ? '0'.repeat(6 - totalPoint.length) + totalPoint : totalPoint.substr(totalPoint.length - 6, 6));
-            if (this.gameOver) {
-                $('#game-over').addClass('active');
+            $('#lifes>li').removeClass('active'); for (var i = 0; i < state.lifes; i++) $('#lifes>li').eq(state.lifes - i - 1).addClass('active');
+            $('#level>span').text(state.level);
+            $('#paused').removeClass('active'); if (state.paused) $('#paused').addClass('active');
+            $('#end').removeClass('active'); if (state.end) $('#end').addClass('active');
+        };
+
+        var Pad = function (onPress) {
+            var mc = new Hammer.Manager($('#pad').get(0));
+            var offset = $('#pad').offset();
+            mc.add(new Hammer.Pan({threshold: 0, pointers: 1}));
+            mc.on("panstart panmove panend", this.onPan.bind(this));
+            this.onPress = onPress;
+            this.timer = new Timer(2, this.dispatch.bind(this));
+            this.o = $('#stick').offset();
+            this.o = {left: this.o.left - offset.left, top: this.o.top - offset.top};
+        };
+
+        Pad.prototype.onPan = function (event) {
+            var offset = {left: this.o.left, top: this.o.top};
+            $('#shadow').attr('style', '');
+            if (event.type != 'panend') {
+                var m = ($('#pad').height() - $('#stick').outerHeight()) / 2, l = Math.sqrt(event.deltaX * event.deltaX + event.deltaY * event.deltaY);
+                var a = Math.atan2(event.deltaY, event.deltaX);
+                l = l > m ? m : l;
+                switch(this.direction = (function (a) {
+                    var limit = [];
+                    $.each([[-1, -1], [1, -1], [1, 1], [-1, 1]], function (i, offset) {
+                        limit.push(Math.atan2(offset[1], offset[0]));
+                    });
+                    if (limit[0] <= a && a < limit[1]) return 3; else if (limit[1] <= a && a < limit[2]) return 0; else if (limit[2] <= a && a < limit[3]) return 2; else return 1;
+                })(a)) {case 0: $('#shadow').css('border-right-color', 'rgba(0, 0, 0, 0.1)'); break; case 1: $('#shadow').css('border-left-color', 'rgba(0, 0, 0, 0.1)'); break; case 2: $('#shadow').css('border-bottom-color', 'rgba(0, 0, 0, 0.1)'); break; case 3: $('#shadow').css('border-top-color', 'rgba(0, 0, 0, 0.1)'); break;}
+                offset.left += Math.cos(a) * l, offset.top += Math.sin(a) * l;
+            } else {
+                delete this.direction;
+            }
+            $('#stick').css('left', offset.left), $('#stick').css('top', offset.top), $('#stick').css('margin', 0);
+        };
+
+        Pad.prototype.dispatch = function () {
+            if (this.direction != undefined) {
+                this.onPress(this.direction);
             }
         };
 
-        DC.prototype.setupLevel = function () {
-            delete this.stopped;
-            this.gamer = new Gamer(this);
-            this.children = [this.gamer];
-            this.timer = new Timer(4, this.ai.bind(this));
-        };
-
-        DC.prototype.stop = function () {
-            this.timer.stop();
-            $.each(this.children, function (i, child) {
-                if (child instanceof Enemy || child instanceof Bullet) {
-                    child.timer.stop();
+        var Button = function (keyCode, el, onPress) {
+            var mc = new Hammer.Manager(el);
+            mc.add(new Hammer.Press({time: 1}));
+            mc.on("press pressup", function (event) {
+                if (event.type == 'press') {
+                    $(el).addClass('active');
+                    this.pressed = 0;
+                    this.timer.count = this.timer.ticks;
+                    this.dispatch();
+                } else {
+                    $(el).removeClass('active');
+                    delete this.pressed;
                 }
-            });
-            this.stopped = true;
+            }.bind(this));
+            this.onPress = onPress;
+            this.keyCode = keyCode;
+            this.timer = new Timer(4, this.dispatch.bind(this));
         };
 
-        DC.prototype.ai = function () {
-            if (Enemy.count < 4) {
-                var enemy = new Enemy(this, 0, 0);
-                var position = [[0, 0], [0, this.h - enemy.h], [this.w - enemy.w, 0], [this.w - enemy.w, this.h - enemy.h]][parseInt(Math.random() * 4)];
+        Button.prototype.dispatch = function () {
+            if (this.pressed != undefined) {
+                this.onPress(this.keyCode);
+            }
+        };
+
+        var Level = function (scene, onEnd) {
+            this.scene = scene;
+            if (this.scene) {
+                this.scene.dispose();
+                this.scene.children.length = 0;
+            }
+            this.onEnd = onEnd;
+            Bullet.hitEventHandler = this.bulletHitEventHandler.bind(this);
+        };
+
+        Level.prototype.onPress = function (keyCode) {
+        };
+
+        Level.prototype.bulletHitEventHandler = function (bullet, target) {
+        };
+
+        Level.prototype.dispose = function () {
+        };
+
+        var LevelOne = function (scene, onEnd) {
+            Level.call(this, scene, onEnd);
+            this.scene.children.unshift(this.player = new Player(this.scene));
+            this.hit = 0;
+            this.enemyCount = 0;
+            this.timer = new Timer(1, this.generateEnemy.bind(this));
+        };
+
+        LevelOne.prototype = new Level();
+
+        LevelOne.prototype.generateEnemy = function () {
+            if (!Core.getState().frozen && this.enemyCount <= 3) {
+                var enemy = new Enemy(this.scene, 0, 0);
+                var position = [[0, 0], [0, this.scene.h - enemy.h], [this.scene.w - enemy.w, 0], [this.scene.w - enemy.w, this.scene.h - enemy.h]][parseInt(Math.random() * 4)];
                 enemy.x = position[0];
                 enemy.y = position[1];
                 if (!enemy.hit()) {
-                    this.children.unshift(enemy);
+                    this.enemyCount++;
+                    this.scene.children.unshift(enemy);
                 } else {
                     enemy.dispose();
                 }
             }
         };
 
-        DC.prototype.hitEventHandler = function (bullet, target) {
-            this.removeChild(bullet);
+        LevelOne.prototype.onPress = function (keyCode) {
+            var state = Core.getState();
+            if (!state.frozen) {
+                if (keyCode <= 3 && this.player.direction == keyCode) {
+                    keyCode = 4;
+                }
+                this.player.go(keyCode);
+            }
+        };
+
+        LevelOne.prototype.bulletHitEventHandler = function (bullet, target) {
+            var state = Core.getState();
+            this.scene.removeChild(bullet);
             if (target instanceof Bullet) {
-                this.removeChild(target);
-            } else if (target instanceof Gamer) {
+                this.scene.removeChild(target);
+            } else if (target instanceof Player) {
+                var timer = new Timer(32, function () {
+                    timer.stop();
+                    this.onEnd(true);
+                }.bind(this));
+                state.frozen = true;
                 target.dead();
-                this.stop();
-                if (!--this.life) {
-                    this.gameOver = true;
-                } else {
-                    this.timer = new Timer(32, function () {
-                        this.dispose();
-                        this.setupLevel();
-                    }.bind(this));
-                }
-            } else if (target instanceof Enemy) {
-                if (bullet.isFromGamer) {
-                    this.removeChild(target);
-                    this.totalPoint += 500;
-                }
+            } else if (target instanceof Enemy && bullet.isFromPlayer) {
+                state.totalPoint += 500;
+                this.scene.removeChild(target);
+                this.enemyCount--;
+                if (++this.hit == 20) this.onEnd();
             }
         };
 
-        DC.prototype.onPressListener = function (action) {
-            if (!this.stopped) {
-                if (action <= 3 && this.gamer.direction == action) {
-                    action = 4;
-                }
-                this.gamer.go(action);
-            }
-        };
-
-        DC.prototype.dispose = function () {
+        LevelOne.prototype.dispose = function () {
             this.timer.stop();
-            Sprite.prototype.dispose.call(this);
         };
 
-        var Pad = function (el, onPressListener) {
-            var mc = new Hammer.Manager(el);
-            var $el = $(el);
-            var offset = $el.offset();
-            mc.add(new Hammer.Pan({threshold: 0, pointers: 1}));
-            mc.on("panstart panmove panend", this.onPan.bind(this));
-            this.el = el;
-            this.onPressListener = onPressListener;
-            this.timer = new Timer(2, this.dispatch.bind(this));
-            this.o = $el.children().eq(0).offset();
-            this.o = {left: this.o.left - offset.left, top: this.o.top - offset.top};
+        var LevelTwo = function (scene, onEnd) {
+            Level.call(this, scene, onEnd);
+            this.scene.children.unshift(new Boss(this.scene));
+            this.scene.children.unshift(this.player = new Player(this.scene));
+            this.player.y = this.scene.h - this.player.h;
+            this.hit = 0;
         };
 
-        Pad.prototype.onPan = function (event) {
-            var $el = $(this.el);
-            var $stick = $el.children().eq(0);
-            var $direction = $el.children().eq(1).children().eq(0);
-            var offset = {left: this.o.left, top: this.o.top};
-            $direction.attr('style', '');
-            if (event.type != 'panend') {
-                var m = ($el.height() - $stick.outerHeight()) / 2, l = Math.sqrt(event.deltaX * event.deltaX + event.deltaY * event.deltaY);
-                var a = Math.atan2(event.deltaY, event.deltaX);
-                l = l > m ? m : l;
-                switch(
-                this.direction = (function (a) {
-                    var limit = [];
-                    $.each([[-1, -1], [1, -1], [1, 1], [-1, 1]], function (i, offset) {
-                        limit.push(Math.atan2(offset[1], offset[0]));
-                    });
-                    if (limit[0] <= a && a < limit[1]) return 3; else if (limit[1] <= a && a < limit[2]) return 0; else if (limit[2] <= a && a < limit[3]) return 2; else return 1;
-                })(a)) {
-                case 0: $direction.css('border-right-color', 'rgba(0, 0, 0, 0.1)'); break;
-                case 1: $direction.css('border-left-color', 'rgba(0, 0, 0, 0.1)'); break;
-                case 2: $direction.css('border-bottom-color', 'rgba(0, 0, 0, 0.1)'); break;
-                case 3: $direction.css('border-top-color', 'rgba(0, 0, 0, 0.1)'); break;
+        LevelTwo.prototype = new Level();
+
+        LevelTwo.prototype.onPress = function (keyCode) {
+            var state = Core.getState();
+            if (!state.frozen) {
+                if (keyCode <= 1) {
+                    this.player.go(4, keyCode);
+                } else if (keyCode == 5) {
+                    this.player.go(keyCode);
                 }
-                offset.left += Math.cos(a) * l, offset.top += Math.sin(a) * l;
+            }
+        };
+
+        LevelTwo.prototype.bulletHitEventHandler = function (bullet, target) {
+            var state = Core.getState();
+            this.scene.removeChild(bullet);
+            if (target instanceof Bullet) {
+                this.scene.removeChild(target);
+            } else if (target instanceof Player) {
+                var timer = new Timer(32, function () {
+                    timer.stop();
+                    this.onEnd(true);
+                }.bind(this));
+                state.frozen = true;
+                target.dead();
+            } else if (target instanceof Boss && bullet.x == target.x + parseInt(target.w / 2)) {
+                target.bitmapData = Boss.data[1];
+                state.totalPoint += 500;
+                if (++this.hit == 20) this.onEnd();
+            }
+        };
+
+        var Core = function (scene) {
+            new Pad(this.onPress.bind(this));
+            new Button(6, $('.button').get(0), this.onPress.bind(this));
+            new Button(5, $('#fire-button').get(0), this.onPress.bind(this));
+            this.scene = scene;
+            this.reset();
+        };
+
+        Core.prototype.reset = function () {
+            this.state = {
+                totalPoint: 0,
+                lifes: 4,
+                level: 0,
+                speed: 0,
+                paused: false,
+                frozen: false,
+                end: false
+            };
+            this.level = new LevelTwo(this.scene, this.onEnd.bind(this));
+        };
+
+        Core.prototype.onEnd = function (dead) {
+            this.level.dispose();
+            if (dead) {
+                if (!--this.state.lifes) {
+                    this.state.end = true;
+                    this.scene.children.push(new End(this.scene, this.reset.bind(this)));
+                    return;
+                }
+                this.state.frozen = false;
+                this.level = this.level instanceof LevelOne ? new LevelOne(this.scene, this.onEnd.bind(this)) : new LevelTwo(this.scene, this.onEnd.bind(this));
             } else {
-                delete this.direction;
-            }
-            $stick.css('left', offset.left), $stick.css('top', offset.top), $stick.css('margin', 0);
-        };
-
-        Pad.prototype.dispatch = function () {
-            if (this.direction != undefined) {
-                this.onPressListener(this.direction);
+                this.state.frozen = false, this.state.level = this.state.level < 9 ? this.state.level + 1 : this.state.level;
+                this.level = this.level instanceof LevelOne ? new LevelTwo(this.scene, this.onEnd.bind(this)) : new LevelOne(this.scene, this.onEnd.bind(this));
             }
         };
 
-        var Button = function (el, onPressListener) {
-            var mc = new Hammer.Manager(el);
-            mc.add(new Hammer.Press({time: 1}));
-            mc.on("press pressup", function (event) {
-                if (event.type == 'press') {
-                    $(el).addClass('active');
-                    this.fire = 0;
-                    this.timer.counter = this.timer.ticks;
-                    this.dispatch();
-                } else {
-                    $(el).removeClass('active');
-                    delete this.fire;
-                }
-            }.bind(this));
-            this.onPressListener = onPressListener;
-            this.timer = new Timer(10, this.dispatch.bind(this));
-        };
-
-        Button.prototype.dispatch = function () {
-            if (this.fire != undefined) {
-                this.onPressListener(5);
+        Core.prototype.onPress = function (keyCode) {
+            if (keyCode == 6) {
+                this.state.paused = !this.state.paused;
+            } else {
+                this.level.onPress(keyCode);
             }
         };
 
         $(function () {
             var dc = new DC();
-            var loop = function () {
-                dc.wear();
-                Timer.step();
-                setTimeout(loop, CONFIG.speed);
+            var core = new Core(dc);
+            Core.getState = function () {
+                return core.state;
             };
-            setTimeout(loop , CONFIG.speed);
+            loop = function () {
+                dc.flush();
+                if (!Core.getState().paused) {
+                    Timer.tick();
+                }
+                setTimeout(loop, CONSTANT.speed);
+            };
+            setTimeout(loop , CONSTANT.speed);
             loop();
         });
     </script>
