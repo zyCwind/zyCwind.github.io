@@ -739,7 +739,7 @@
         Core.prototype.onPress = function (keyCode) {
             if (keyCode == 6) {
                 this.state.paused = !this.state.paused;
-            } else {
+            } else if (!this.state.paused) {
                 this.level.onPress(keyCode);
             }
         };
