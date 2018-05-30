@@ -696,8 +696,7 @@
                 state.frozen = true;
                 target.dead();
             } else if (target instanceof Boss && bullet.x == target.x + parseInt(target.w / 2)) {
-                target.bitmapData = Boss.data[1];
-                state.totalPoint += 500;
+                target.bitmapData = Boss.data[1], state.totalPoint += 500;
                 if (++this.hit == 20) this.onEnd();
             }
         };
@@ -720,7 +719,7 @@
                 frozen: false,
                 end: false
             };
-            this.level = new LevelTwo(this.scene, this.onEnd.bind(this));
+            this.level = new LevelOne(this.scene, this.onEnd.bind(this));
         };
 
         Core.prototype.onEnd = function (dead) {
