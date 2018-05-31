@@ -525,7 +525,7 @@
             var totalPoint = state.totalPoint.toString();
             var bitmapData = this.rootScene.draw(DC.data[0]);
             $('#dc>li').removeClass('active'); for (var i = 0; i < bitmapData.length; i++) if (bitmapData[i] == '1') $('#dc>li').eq(i).addClass('active');
-            $('#total-point').text(totalPoint.length < 7 ? '0'.repeat(7 - totalPoint.length) + totalPoint : totalPoint.substr(totalPoint.length - 7, 7));
+            $('#total-point').text(totalPoint.length < 6 ? '0'.repeat(6 - totalPoint.length) + totalPoint : totalPoint.substr(totalPoint.length - 6, 6));
             $('#lifes>li').removeClass('active'); for (var i = 0; i < state.lifes; i++) $('#lifes>li').eq(CONSTANT.maxLifes - i - 1).addClass('active');
             $('#speed>span').text(state.speed);
             $('#level>span').text(state.level);
