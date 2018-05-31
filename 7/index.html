@@ -437,11 +437,31 @@
         var Boss = function (parent) {
             Sprite.call(this, parent, parseInt((parent.w - 7) / 2), 0, 7, 8);
             this.bitmapData = Boss.data[0];
-            this.timer = new Timer(CONSTANT.maxSpeed - Core.getState().speed, this.ai.bind(this));
+            this.timer = new Timer(1, this.step.bind(this));
+            this.count = this.ticks = CONSTANT.maxSpeed - Core.getState().speed;
             this.i = 0;
+            this.state = 0;
         };
 
         Boss.prototype = new Sprite();
+
+        Boss.prototype.step = function () {
+            this.bitmapData = Boss.data[this.state];
+            this.state = 0;
+            if (!--this.count) {
+                this.count = this.ticks;
+                if (!Core.getState().frozen) {
+                    if (!this.i) {
+                        if (this.x < this.parent.w - this.w) this.x++; else this.i = 1;
+                    } else {
+                        if (this.x > 0) this.x--; else this.i = 0;
+                    }
+                    if (!parseInt(Math.random() * 3)) {
+                        this.fire();
+                    }
+                }
+            }
+        };
 
         Boss.prototype.fire = function () {
             var bullet = new Bullet(this.parent, this.x + parseInt(this.w / 2), this.h, 2);
@@ -450,20 +470,6 @@
                 return bullet;
             }
             bullet.dispose();
-        };
-
-        Boss.prototype.ai = function () {
-            this.bitmapData = Boss.data[0];
-            if (!Core.getState().frozen) {
-                if (!this.i) {
-                    if (this.x < this.parent.w - this.w) this.x++; else this.i = 1;
-                } else {
-                    if (this.x > 0) this.x--; else this.i = 0;
-                }
-                if (!parseInt(Math.random() * 2)) {
-                    this.fire();
-                }
-            }
         };
 
         Boss.prototype.dispose = function () {
@@ -664,7 +670,10 @@
                 state.totalPoint += 500;
                 this.scene.removeChild(target);
                 this.enemyCount--;
-                if (!(state.totalPoint % 10000)) this.onEnd();
+                if (!(state.totalPoint % 10000)) {
+                    state.level = 0;
+                    this.onEnd();
+                }
             }
         };
 
@@ -674,7 +683,14 @@
 
         var LevelTwo = function (scene, onEnd) {
             Level.call(this, scene, onEnd);
-            this.scene.children.unshift(new Boss(this.scene));
+            /**
+             * fix
+             *
+             *
+             */
+            var timer = new Timer(1, function () {
+                timer.stop(), this.scene.children.unshift(this.boss = new Boss(this.scene));
+            }.bind(this));
             this.scene.children.unshift(this.player = new Player(this.scene));
             this.player.y = this.scene.h - this.player.h;
         };
@@ -705,9 +721,11 @@
                 state.frozen = true;
                 target.dead();
             } else if (target instanceof Boss && bullet.x == target.x + parseInt(target.w / 2)) {
-                target.bitmapData = Boss.data[1], state.totalPoint += 500;
+                state.totalPoint += 500;
+                this.boss.state = 1;
                 if (!(state.totalPoint % 10000)) {
                     state.speed = state.speed < 9 ? state.speed + 1 : 9;
+                    state.level = 0;
                     this.onEnd();
                 }
             }
@@ -732,7 +750,7 @@
                 frozen: false,
                 end: false
             };
-            this.level = new LevelOne(this.scene, this.onEnd.bind(this));
+            this.level = new LevelTwo(this.scene, this.onEnd.bind(this));
         };
 
         Core.prototype.onEnd = function (dead) {
@@ -746,12 +764,8 @@
                 this.state.frozen = false;
                 this.level = this.level instanceof LevelOne ? new LevelOne(this.scene, this.onEnd.bind(this)) : new LevelTwo(this.scene, this.onEnd.bind(this));
             } else {
-                this.state.frozen = false, this.state.level = this.state.level < 9 ? this.state.level + 1 : 9;
-                if (this.level instanceof LevelOne) {
-                    this.level = new LevelTwo(this.scene, this.onEnd.bind(this));
-                } else {
-                    this.level = new LevelOne(this.scene, this.onEnd.bind(this));
-                }
+                this.state.frozen = false;
+                this.level = this.level instanceof LevelTwo ? new LevelOne(this.scene, this.onEnd.bind(this)) : new LevelTwo(this.scene, this.onEnd.bind(this));
             }
         };
 
