@@ -189,7 +189,8 @@
         var CONSTANT = {
             w: 10,
             h: 20,
-            speed: 100
+            speed: 100,
+            maxLifes: 4
         };
 
         var Timer = function (ticks, onTime) {
@@ -471,15 +472,9 @@
         Boss.data = ['11000110100010101110101101101011101010101011010110001000', '0'.repeat(56)];
 
         var End = function (parent, onStop) {
-            Sprite.call(this, parent, 0, 0, CONSTANT.w, CONSTANT.h);
+            Sprite.call(this, parent, 0, 0, parent.w, parent.h);
             this.onStop = onStop;
-            this.timer = new Timer(1, this.next.bind(this));
-            this.position = [0, 0, this.w - 1, this.h - 1];
-            this.i = 0;
-            this.pX = this.position[0];
-            this.pY = this.position[3];
-            this.count = 0;
-            this.bitmapData = '2'.repeat(this.bitmapData.length);
+            this.bitmapData = End.data[0];
         };
 
         End.prototype = new Sprite();
@@ -491,35 +486,46 @@
                 this.bitmapData = splitted.join('');
                 switch (this.i) {case 0: if (this.pY-- == this.position[1]) this.i = 1, this.pY = this.position[1], this.pX++; break; case 1: if (this.pX++ == this.position[2]) this.i = 2, this.pX = this.position[2], this.pY++; break; case 2: if (this.pY++ == this.position[3]) this.i = 3, this.pY = this.position[3], this.pX--, this.position[0]++, this.position[1]++, this.position[2]--, this.position[3]--; break; case 3: if (this.pX-- == this.position[0]) this.i = 0, this.pX = this.position[0], this.pY--; break;}
             } else {
-                this.parent.removeChild(this);
+                this.timer.stop();
+                this.bitmapData = End.data[0];
                 this.onStop();
             }
+        };
+
+        End.prototype.show = function () {
+            this.count = 0;
+            this.position = [0, 0, this.w - 1, this.h - 1];
+            this.i = 0;
+            this.pX = this.position[0];
+            this.pY = this.position[3];
+            this.bitmapData = End.data[0];
+            this.timer = new Timer(1, this.next.bind(this));
         };
 
         End.prototype.dispose = function () {
             this.timer.stop();
         };
 
+        End.data = ['2'.repeat(CONSTANT.w * CONSTANT.h)];
+
         var DC = function () {
-            Sprite.call(this, {
-                w: CONSTANT.w
-            }, 0, 0, CONSTANT.w, CONSTANT.h);
-            $('#dc').html('<li></li>'.repeat(this.bitmapData.length));
+            $('#dc').html('<li></li>'.repeat(CONSTANT.w * CONSTANT.h));
+            this.rootScene = new Sprite({w: CONSTANT.w}, 0, 0, CONSTANT.w, CONSTANT.h);
         };
 
-        DC.prototype = new Sprite();
-
         DC.prototype.flush = function () {
-            var bitmapData = this.draw(this.bitmapData);
             var state = Core.getState();
             var totalPoint = state.totalPoint.toString();
+            var bitmapData = this.rootScene.draw(DC.data[0]);
             $('#dc>li').removeClass('active'); for (var i = 0; i < bitmapData.length; i++) if (bitmapData[i] == '1') $('#dc>li').eq(i).addClass('active');
             $('#total-point').text(totalPoint.length < 6 ? '0'.repeat(6 - totalPoint.length) + totalPoint : totalPoint.substr(totalPoint.length - 6, 6));
-            $('#lifes>li').removeClass('active'); for (var i = 0; i < state.lifes; i++) $('#lifes>li').eq(3 - i).addClass('active');
+            $('#lifes>li').removeClass('active'); for (var i = 0; i < state.lifes; i++) $('#lifes>li').eq(CONSTANT.maxLifes - i - 1).addClass('active');
             $('#level>span').text(state.level);
             $('#paused').removeClass('active'); if (state.paused) $('#paused').addClass('active');
             $('#end').removeClass('active'); if (state.end) $('#end').addClass('active');
         };
+
+        DC.data = ['0'.repeat(CONSTANT.w * CONSTANT.h)]
 
         var Pad = function (onPress) {
             var mc = new Hammer.Manager($('#pad').get(0));
@@ -706,14 +712,15 @@
             new Pad(this.onPress.bind(this));
             new Button(6, $('.button').get(0), this.onPress.bind(this));
             new Button(5, $('#fire-button').get(0), this.onPress.bind(this));
-            this.scene = scene;
+            scene.children.unshift(this.end = new End(scene, this.reset.bind(this)));
+            scene.children.unshift(this.scene = new Sprite(scene, 0, 0, scene.w, scene.h));
             this.reset();
         };
 
         Core.prototype.reset = function () {
             this.state = {
                 totalPoint: 0,
-                lifes: 4,
+                lifes: CONSTANT.maxLifes,
                 level: 0,
                 speed: 0,
                 paused: false,
@@ -728,7 +735,7 @@
             if (dead) {
                 if (!--this.state.lifes) {
                     this.state.end = true;
-                    this.scene.children.push(new End(this.scene, this.reset.bind(this)));
+                    this.end.show();
                     return;
                 }
                 this.state.frozen = false;
@@ -745,7 +752,7 @@
 
         $(function () {
             var dc = new DC();
-            var core = new Core(dc);
+            var core = new Core(dc.rootScene);
             Core.getState = function () {
                 return core.state;
             };
