@@ -740,9 +740,6 @@
         };
 
         var Core = function (scene) {
-            new Pad(this.onPress.bind(this));
-            new Button(6, $('.button').get(0), this.onPress.bind(this));
-            new Button(5, $('#fire-button').get(0), this.onPress.bind(this));
             scene.children.unshift(this.end = new End(scene, this.reset.bind(this)));
             scene.children.unshift(this.scene = new Sprite(scene, 0, 0, scene.w, scene.h));
             this.reset();
@@ -787,6 +784,9 @@
             Core.getState = function () {
                 return core.state;
             };
+            new Pad(core.onPress.bind(core));
+            new Button(6, $('.button').get(0), core.onPress.bind(core));
+            new Button(5, $('#fire-button').get(0), core.onPress.bind(core));
             loop = function () {
                 dc.flush();
                 if (!Core.getState().paused) Timer.tick();
