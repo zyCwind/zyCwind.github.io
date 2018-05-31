@@ -112,7 +112,7 @@
             height: 100px;
             border-radius: 50%;
             overflow: hidden;
-            border: #000 solid 2px;
+            border: rgba(0, 0, 0, 0.1) solid 2px;
             margin: auto;
         }
         #pad .bg-shadow {
@@ -189,8 +189,9 @@
         var CONSTANT = {
             w: 10,
             h: 20,
-            speed: 100,
-            maxLifes: 4
+            frameRate: 100,
+            maxLifes: 4,
+            maxSpeed: 12
         };
 
         var Timer = function (ticks, onTime) {
@@ -378,7 +379,7 @@
 
         var Enemy = function (parent, x, y) {
             Tank.call(this, parent, x, y, parseInt(Math.random() * 4));
-            this.timer = new Timer(4, this.ai.bind(this));
+            this.timer = new Timer(CONSTANT.maxSpeed - Core.getState().speed, this.ai.bind(this));
         };
 
         Enemy.prototype = new Tank();
@@ -436,7 +437,7 @@
         var Boss = function (parent) {
             Sprite.call(this, parent, parseInt((parent.w - 7) / 2), 0, 7, 8);
             this.bitmapData = Boss.data[0];
-            this.timer = new Timer(8, this.ai.bind(this));
+            this.timer = new Timer(CONSTANT.maxSpeed - Core.getState().speed, this.ai.bind(this));
             this.i = 0;
         };
 
@@ -520,6 +521,7 @@
             $('#dc>li').removeClass('active'); for (var i = 0; i < bitmapData.length; i++) if (bitmapData[i] == '1') $('#dc>li').eq(i).addClass('active');
             $('#total-point').text(totalPoint.length < 6 ? '0'.repeat(6 - totalPoint.length) + totalPoint : totalPoint.substr(totalPoint.length - 6, 6));
             $('#lifes>li').removeClass('active'); for (var i = 0; i < state.lifes; i++) $('#lifes>li').eq(CONSTANT.maxLifes - i - 1).addClass('active');
+            $('#speed>span').text(state.speed);
             $('#level>span').text(state.level);
             $('#paused').removeClass('active'); if (state.paused) $('#paused').addClass('active');
             $('#end').removeClass('active'); if (state.end) $('#end').addClass('active');
@@ -704,7 +706,10 @@
                 target.dead();
             } else if (target instanceof Boss && bullet.x == target.x + parseInt(target.w / 2)) {
                 target.bitmapData = Boss.data[1], state.totalPoint += 500;
-                if (!(state.totalPoint % 10000)) this.onEnd();
+                if (!(state.totalPoint % 10000)) {
+                    state.speed = state.speed < 9 ? state.speed + 1 : 9;
+                    this.onEnd();
+                }
             }
         };
 
@@ -722,7 +727,7 @@
                 totalPoint: 0,
                 lifes: CONSTANT.maxLifes,
                 level: 0,
-                speed: 0,
+                speed: 1,
                 paused: false,
                 frozen: false,
                 end: false
@@ -742,7 +747,11 @@
                 this.level = this.level instanceof LevelOne ? new LevelOne(this.scene, this.onEnd.bind(this)) : new LevelTwo(this.scene, this.onEnd.bind(this));
             } else {
                 this.state.frozen = false, this.state.level = this.state.level < 9 ? this.state.level + 1 : 9;
-                this.level = this.level instanceof LevelOne ? new LevelTwo(this.scene, this.onEnd.bind(this)) : new LevelOne(this.scene, this.onEnd.bind(this));
+                if (this.level instanceof LevelOne) {
+                    this.level = new LevelTwo(this.scene, this.onEnd.bind(this));
+                } else {
+                    this.level = new LevelOne(this.scene, this.onEnd.bind(this));
+                }
             }
         };
 
@@ -759,9 +768,9 @@
             loop = function () {
                 dc.flush();
                 if (!Core.getState().paused) Timer.tick();
-                setTimeout(loop, CONSTANT.speed);
+                setTimeout(loop, CONSTANT.frameRate);
             };
-            setTimeout(loop , CONSTANT.speed);
+            setTimeout(loop , CONSTANT.frameRate);
             loop();
         });
     </script>
