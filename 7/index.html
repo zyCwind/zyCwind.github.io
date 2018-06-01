@@ -537,26 +537,25 @@
 
         var Pad = function (onPress) {
             var mc = new Hammer.Manager($('#pad').get(0));
-            var offset = $('#pad').offset();
             mc.add(new Hammer.Pan({threshold: 0, pointers: 1}));
             mc.on("panstart panmove panend", this.onPan.bind(this));
             this.onPress = onPress;
             this.timer = new Timer(2, this.dispatch.bind(this));
-            this.o = $('#stick').offset();
-            this.o = {left: this.o.left - offset.left, top: this.o.top - offset.top};
+            this.o = $('#stick').position();
         };
 
         Pad.prototype.onPan = function (event) {
             var offset = {left: this.o.left, top: this.o.top};
             $('#shadow').attr('style', '');
             if (event.type != 'panend') {
-                var m = ($('#pad').height() - $('#stick').outerHeight()) / 2, l = Math.sqrt(event.deltaX * event.deltaX + event.deltaY * event.deltaY);
-                var a = Math.atan2(event.deltaY, event.deltaX);
+                var p = this.position(event.center);
+                var m = ($('#pad').height() - $('#stick').outerHeight()) / 2;
+                var l = Math.sqrt(p.x * p.x + p.y * p.y), a = Math.atan2(p.y, p.x);
                 l = l > m ? m : l;
                 switch(this.direction = (function (a) {
                     var limit = [];
-                    $.each([[-1, -1], [1, -1], [1, 1], [-1, 1]], function (i, offset) {
-                        limit.push(Math.atan2(offset[1], offset[0]));
+                    $.each([[-1, -1], [1, -1], [1, 1], [-1, 1]], function (i, p) {
+                        limit.push(Math.atan2(p[1], p[0]));
                     });
                     if (limit[0] <= a && a < limit[1]) return 3; else if (limit[1] <= a && a < limit[2]) return 0; else if (limit[2] <= a && a < limit[3]) return 2; else return 1;
                 })(a)) {case 0: $('#shadow').css('border-right-color', 'rgba(0, 0, 0, 0.1)'); break; case 1: $('#shadow').css('border-left-color', 'rgba(0, 0, 0, 0.1)'); break; case 2: $('#shadow').css('border-bottom-color', 'rgba(0, 0, 0, 0.1)'); break; case 3: $('#shadow').css('border-top-color', 'rgba(0, 0, 0, 0.1)'); break;}
@@ -564,13 +563,21 @@
             } else {
                 delete this.direction;
             }
-            $('#stick').css('left', offset.left), $('#stick').css('top', offset.top), $('#stick').css('margin', 0);
+            $('#stick').css('left', offset.left), $('#stick').css('top', offset.top);
         };
 
         Pad.prototype.dispatch = function () {
             if (this.direction != undefined) {
                 this.onPress(this.direction);
             }
+        };
+
+        Pad.prototype.position = function (point) {
+            var offset = $('#pad').offset();
+            return {
+                x: point.x + (document.documentElement && document.documentElement.scrollLeft || document.body && document.body.scrollLeft || 0) - offset.left - this.o.left,
+                y: point.y + (document.documentElement && document.documentElement.scrollTop || document.body && document.body.scrollTop || 0) - offset.top - this.o.top
+            };
         };
 
         var Button = function (keyCode, el, onPress) {
