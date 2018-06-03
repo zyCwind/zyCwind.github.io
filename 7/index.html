@@ -657,7 +657,7 @@
             this.timer = new Timer(1, this.generateEnemy.bind(this));
             var timer = new Timer(1, function () {
                 timer.stop();
-                this.resetMap(LevelOne.data.subLevel[Core.getState().totalPoint / 20000 % LevelOne.data.subLevel.length]);
+                this.resetMap(LevelOne.data.subLevel[parseInt(Core.getState().totalPoint / 20000) % LevelOne.data.subLevel.length]);
             }.bind(this));
         };
 
