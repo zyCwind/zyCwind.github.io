@@ -395,21 +395,6 @@
             this.timer.stop();
         };
 
-        var Heart = function (parent, x, y) {
-            Sprite.call(this, parent, x, y, 1, 1);
-            this.timer = new Timer(1, this.next.bind(this));
-        };
-
-        Heart.prototype = new Sprite();
-
-        Heart.prototype.next = function () {
-            this.bitmapData = this.bitmapData == '0' ? '1' : '0';
-        };
-
-        Heart.prototype.dispose = function () {
-            this.timer.stop();
-        };
-
         var Player = function (parent) {
             Tank.call(this, parent, parseInt((parent.w - 2) / 2), parseInt((parent.h - 3) / 2), 3);
             this.timer = new Timer(1, this.next.bind(this));
@@ -493,6 +478,28 @@
         };
 
         Boss.data = ['11000110100010101110101101101011101010101011010110001000', '0'.repeat(56)];
+
+        var Brick = function (parent, x, y) {
+            Sprite.call(this, parent, x, y, 1, 1);
+            this.bitmapData = '1';
+        };
+
+        Brick.prototype = new Sprite();
+
+        var Heart = function (parent, x, y) {
+            Brick.call(this, parent, x, y);
+            this.timer = new Timer(1, this.next.bind(this));
+        };
+
+        Heart.prototype = new Brick();
+
+        Heart.prototype.next = function () {
+            this.bitmapData = this.bitmapData == '0' ? '1' : '0';
+        };
+
+        Heart.prototype.dispose = function () {
+            this.timer.stop();
+        };
 
         var End = function (parent, onStop) {
             Sprite.call(this, parent, 0, 0, parent.w, parent.h);
@@ -650,29 +657,27 @@
             this.timer = new Timer(1, this.generateEnemy.bind(this));
             var timer = new Timer(1, function () {
                 timer.stop();
-                this.addBrick(LevelOne.data.subLevel[Core.getState().totalPoint / 20000 % LevelOne.data.subLevel.length]);
+                this.resetMap(LevelOne.data.subLevel[Core.getState().totalPoint / 20000 % LevelOne.data.subLevel.length]);
             }.bind(this));
         };
 
         LevelOne.prototype = new Level();
 
-        LevelOne.prototype.addBrick = function (collection) {
+        LevelOne.prototype.resetMap = function (collection) {
             $.each(collection, function (index, i) {
                 for (var j = 0; j < LevelOne.data.map[i].data.length / LevelOne.data.map[i].w; j++) {
                     for (var k = 0; k < LevelOne.data.map[i].w; k++) {
-                        var sprite;
+                        var sprite = undefined;
                         switch (LevelOne.data.map[i].data[j * LevelOne.data.map[i].w + k]) {
                         case '1':
-                            sprite = new Sprite(this.scene, LevelOne.data.map[i].x + k, LevelOne.data.map[i].y + j, 1, 1);
+                            sprite = new Brick(this.scene, LevelOne.data.map[i].x + k, LevelOne.data.map[i].y + j, 1, 1);
                             sprite.bitmapData = '1';
                             break;
                         case '2':
                             sprite = new Heart(this.scene, LevelOne.data.map[i].x + k, LevelOne.data.map[i].y + j)
                             break;
                         }
-                        if (sprite) {
-                            this.scene.children.push(sprite);
-                        }
+                        if (sprite) this.scene.children.push(sprite);
                     }
                 }
             }.bind(this));
@@ -728,7 +733,7 @@
                         this.onEnd();
                     }
                 }
-            } else {
+            } else if (target instanceof Brick){
                 this.scene.removeChild(target);
             }
         };
