@@ -304,6 +304,9 @@
                 var x = this.x;
                 var y = this.y;
                 var target;
+                if (target = this.hit()) {
+                    Bullet.hitEventHandler(this, target);
+                }
                 switch (this.direction) {
                 case 0: this.x += 1; break;
                 case 1: this.x -= 1; break;
@@ -312,8 +315,6 @@
                 }
                 if (this.overflow()) {
                     this.parent.removeChild(this);
-                } else if (target = this.hit()) {
-                    Bullet.hitEventHandler(this, target);
                 }
             }
         };
@@ -394,8 +395,23 @@
             this.timer.stop();
         };
 
+        var Heart = function (parent, x, y) {
+            Sprite.call(this, parent, x, y, 1, 1);
+            this.timer = new Timer(1, this.next.bind(this));
+        };
+
+        Heart.prototype = new Sprite();
+
+        Heart.prototype.next = function () {
+            this.bitmapData = this.bitmapData == '0' ? '1' : '0';
+        };
+
+        Heart.prototype.dispose = function () {
+            this.timer.stop();
+        };
+
         var Player = function (parent) {
-            Tank.call(this, parent, parseInt((parent.w - 3) / 2), parseInt((parent.h - 3) / 2), 3);
+            Tank.call(this, parent, parseInt((parent.w - 2) / 2), parseInt((parent.h - 3) / 2), 3);
             this.timer = new Timer(1, this.next.bind(this));
             this.state = 0;
         };
@@ -632,9 +648,35 @@
             this.scene.children.unshift(this.player = new Player(this.scene));
             this.enemyCount = 0;
             this.timer = new Timer(1, this.generateEnemy.bind(this));
+            var timer = new Timer(1, function () {
+                timer.stop();
+                this.addBrick(LevelOne.data.subLevel[Core.getState().totalPoint / 20000 % LevelOne.data.subLevel.length]);
+            }.bind(this));
         };
 
         LevelOne.prototype = new Level();
+
+        LevelOne.prototype.addBrick = function (collection) {
+            $.each(collection, function (index, i) {
+                for (var j = 0; j < LevelOne.data.map[i].data.length / LevelOne.data.map[i].w; j++) {
+                    for (var k = 0; k < LevelOne.data.map[i].w; k++) {
+                        var sprite;
+                        switch (LevelOne.data.map[i].data[j * LevelOne.data.map[i].w + k]) {
+                        case '1':
+                            sprite = new Sprite(this.scene, LevelOne.data.map[i].x + k, LevelOne.data.map[i].y + j, 1, 1);
+                            sprite.bitmapData = '1';
+                            break;
+                        case '2':
+                            sprite = new Heart(this.scene, LevelOne.data.map[i].x + k, LevelOne.data.map[i].y + j)
+                            break;
+                        }
+                        if (sprite) {
+                            this.scene.children.push(sprite);
+                        }
+                    }
+                }
+            }.bind(this));
+        };
 
         LevelOne.prototype.generateEnemy = function () {
             if (!Core.getState().frozen && this.enemyCount <= 3) {
@@ -666,26 +708,38 @@
             this.scene.removeChild(bullet);
             if (target instanceof Bullet) {
                 this.scene.removeChild(target);
-            } else if (target instanceof Player) {
+            } else if (target == this.player || target instanceof Heart) {
+                if (target instanceof Heart) {
+                    this.scene.removeChild(target);
+                }
                 var timer = new Timer(32, function () {
                     timer.stop();
                     this.onEnd(true);
                 }.bind(this));
                 state.frozen = true;
-                target.dead();
-            } else if (target instanceof Enemy && bullet.isFromPlayer) {
-                state.totalPoint += 500;
-                this.scene.removeChild(target);
-                this.enemyCount--;
-                if (!(state.totalPoint % 10000)) {
-                    state.level = 1;
-                    this.onEnd();
+                this.player.dead();
+            } else if (target instanceof Enemy) {
+                if (bullet.isFromPlayer) {
+                    state.totalPoint += 500;
+                    this.scene.removeChild(target);
+                    this.enemyCount--;
+                    if (!(state.totalPoint % 10000)) {
+                        state.level = 1;
+                        this.onEnd();
+                    }
                 }
+            } else {
+                this.scene.removeChild(target);
             }
         };
 
         LevelOne.prototype.dispose = function () {
             this.timer.stop();
+        };
+
+        LevelOne.data = {
+            subLevel: [[], [0, 1, 2, 3], [4], [1, 2, 3, 4, 5]], 
+            map: [{x: 1, y: 5, w: 3, data: '111100100'}, {x: 7, y: 5, w: 2, data: '110101'}, {x: 1, y: 12, w: 3, data: '100100100111'}, {x: 7, y: 13, w: 2, data: '010111'}, {x: 1, y: 7, w: 3, data: '111111121111111'}, {x: 1, y: 5, w: 3, data: '111100'}]
         };
 
         var LevelTwo = function (scene, onEnd) {
