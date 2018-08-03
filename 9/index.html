@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <style type="text/css">
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        #t ul {
+            list-style-type: none;
+            width: 90px;
+            height: 90px;
+            background: #000;
+        }
+        #t ul>li {
+            float: left;
+            width: 20px;
+            height: 20px;
+            margin: 5px;
+            text-align: center;
+            line-height: 20px;
+            background: #f00;
+        }
+    </style>
+</head>
+<body>
+    <div style="width: 100%; text-align: center;">
+        通过逆序数判断解!
+        <div id="t" style="margin: auto; width: 90px;"></div>
+    </div>
+    <script type="text/javascript">
+        /**
+         * 配置
+         *
+         *
+         */
+        var DATA = '1,2,3,4,5,6,7,8,0';
+        var W = 3;
+        var H = DATA.split(',').length / W;
+        var R = r(DATA);
+
+        function h(data) {
+            var a = data.split(',');
+            var r = 0;
+            for (var i = 0; i < a.length; i++) {
+                r += function (a, b) {
+                    return Math.sqrt(Math.pow(parseInt(a / W) - parseInt(b / W), 2) + Math.pow((a % W) - (b % W), 2));
+                } ((i + 1) % a.length, parseInt(a[i]));
+            }
+            return r;
+        }
+        
+        // A*
+        //
+        // 1.从 open 中取出最小的 f 值节点放入 closed 中
+        // 2.计算 上下左右移动的 f 值即当前的 g 值加上估算值 h 并将节点放入 open 中（新节点在 closed 中啥也不干, 新节点在 open 中则对其更新, 设置父节点）
+        // 3.若未完成搜索则回到 1
+        // 4.输出路径
+        function contains(a, data) {
+            for (var i = 0; i < a.length; i++) {
+                if (a[i].data == data) {
+                    return i;
+                }
+            }
+        }
+
+        function s(open, _closed, parent, pos, newPos) {
+            // 新节点在 closed 中啥也不干, 新节点在 open 中则对其更新
+            var a = parent.data.split(',');
+            a[pos] = a[newPos];
+            a[newPos] = '0';
+            var data = a.join(',');
+            if (contains(_closed, data) == undefined) {
+                var g = parent.g + 1;
+                var f = g + h(data);
+                var i = contains(open, data);
+                if (i != undefined) {
+                    if (f < open[i].f) {
+                        open[i].parent = parent;
+                        open[i].f = f;
+                        open[i].g = g;
+                    }
+                } else {
+                    var n = {
+                        data: data,
+                        parent: parent,
+                        f: f,
+                        g: g
+                    };
+                    open.push(n);
+                    if (f == g) {
+                        return n;
+                    }
+                }
+            }
+        }
+
+        function r(data) {
+            var a = data.split(',');
+            var s = 0;
+            var p;
+            for (var i = 0; i < a.length; i++) {
+                if (!parseInt(a[i])) {
+                    p = i;
+                }
+                for (var j = 0; j < i; j++) {
+                    if (parseInt(a[i]) < parseInt(a[j])) {
+                        s++;
+                    }
+                }
+            }
+            return s + parseInt(p / W) + p % W;
+        }
+
+        function random() {
+            var data;
+            do {
+                var a = DATA.split(',');
+                for (var i = 0; i < a.length / 2; i++) {
+                    var p = parseInt(Math.random() * a.length);
+                    var t = a[p];
+                    a[p] = a[0];
+                    a[0] = t;
+                }
+            } while (r(data = a.join(',')) % 2 != R % 2);
+            return data;
+        }
+
+        function search(data, cb) {
+            var open = [{ data: data, f: h(data), g: 0 }];
+            if (!open[0].f) {
+                cb(open[0]);
+            } else {
+                var _closed = [];
+                var handle = setInterval(function () {
+                    if (open.length > 0) {
+                        // 1.从 open 中取出最小的 f 值节点放入 closed 中
+                        var p = 0;
+                        for (var i = 1; i < open.length; i++) {
+                            if (open[i].f < open[p].f) {
+                                p = i;
+                            }
+                        }
+                        var n = open.splice(p, 1)[0];
+                        _closed.push(n);
+                        // 2.计算 上下左右移动的 f 值即当前的 g 值加上估算值 h 并将节点放入 open 中
+                        var pos = function (a) {
+                            for (var i = 0; i < a.length; i++) {
+                                if (parseInt(a[i]) == 0) {
+                                    return i;
+                                }
+                            }
+                        } (n.data.split(','));
+                        var x = pos % W;
+                        var y = parseInt(pos / W);
+                        var t;
+                        if (x > 0) {
+                            if (t = s(open, _closed, n, pos, (x - 1) + y * W)) {
+                                clearInterval(handle);
+                                cb(t);
+                                return ;
+                            }
+                        }
+                        if (x < W - 1) {
+                            if (t = s(open, _closed, n, pos, (x + 1) + y * W)) {
+                                clearInterval(handle);
+                                cb(t);
+                                return ;
+                            }
+                        }
+                        if (y > 0) {
+                            if (t = s(open, _closed, n, pos, x + (y - 1) * W)) {
+                                clearInterval(handle);
+                                cb(t);
+                                return ;
+                            }
+                        }
+                        if (y < H - 1) {
+                            if (t = s(open, _closed, n, pos, x + (y + 1) * W)) {
+                                clearInterval(handle);
+                                cb(t);
+                            }
+                        }
+                    }
+                }, 1);
+            }
+        }
+
+        function format(data) {
+            var a = data.split(',');
+            var t = '';
+            for (var i = 0; i < a.length; i++) {
+                if (!parseInt(a[i])) {
+                    t += '<li style="background: #ff0;"></li>';
+                } else {
+                    t += '<li>' + a[i] + '</li>';
+                }
+            }
+            return '<ul>' + t + '</ul>';
+        }
+
+        // '3,2,7,4,5,1,10,8,9,6,0,12,13,14,11,15'
+        search(random(), function (n) {
+            var t = format(n.data);
+            while (n = n.parent) {
+                t = format(n.data) + '<br/>' + t;
+            }
+            document.getElementById('t').innerHTML = '<br/>' + t;
+        });
+    </script>
+</body>
+</html>
