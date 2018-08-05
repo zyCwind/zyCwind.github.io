@@ -12,29 +12,52 @@
         }
         #t ul {
             list-style-type: none;
-            width: 90px;
-            height: 90px;
-            background: #000;
+            width: 318px;
+            height: 318px;
             position: relative;
+            background: #f9d962;
         }
         #t ul>li {
             position: absolute;
-            width: 20px;
-            height: 20px;
+            width: 96px;
+            height: 96px;
             margin: 5px;
-            text-align: center;
-            line-height: 20px;
-            background: #f00;
+            cursor: pointer;
+            border-radius: 5px;
+            overflow: hidden;
         }
         #t ul>li._0 {
             background: rgba(0, 0, 0, 0);
         }
+        #reload {
+            float: right;
+        }
+        #search, #reload {
+            width: 96px;
+            height: 96px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 5px;
+            overflow: hidden;
+            background: #fff;
+        }
+        #search.active {
+            background: #f9d962;
+        }
     </style>
 </head>
 <body>
-    <div style="width: 100%; text-align: center;">
-        <br />
-        <div id="t" style="margin: auto; width: 90px;"></div>
+    <div style="width: 320px; margin: auto;">
+        <div style="margin: 10px 0;">zy_cwind@weixin</div>
+        <div style="background: #ecc771; border: #000 solid 1px; border-radius: 5px; overflow: hidden;">
+            <div>
+                <div id="search" style="float: left;"><img src="search.png" style="width: 76px; height: 76px; margin: 10px;" /></div>
+                <div id="reload"><img src="reload.png" style="width: 76px; height: 76px; margin: 10px;" /></div>
+            </div>
+            <div style="clear: both;"></div>
+            <div id="t"></div>
+        </div>
+        <div style="margin: 10px 0; text-align: right;">左键求解, 右键重置 ©2018</div>
     </div>
     <script type="text/javascript">
         var DATA = '1,2,3,4,5,6,7,8,0';
@@ -43,7 +66,27 @@
         var R = r(DATA);
 
         var elementData;
-        var eventQueue = [];
+        var eventQueue;
+        var handle;
+
+        function dir(p) {
+            var pos = [];
+            var x = p % W;
+            var y = parseInt(p / W);
+            if (x > 0) {
+                pos.push((x - 1) + y * W);
+            }
+            if (x < W - 1) {
+                pos.push((x + 1) + y * W);
+            }
+            if (y > 0) {
+                pos.push(x + (y - 1) * W);
+            }
+            if (y < H - 1) {
+                pos.push(x + (y + 1) * W);
+            }
+            return pos;
+        }
 
         function h(data) {
             var a = data.split(',');
@@ -68,6 +111,7 @@
                     return i;
                 }
             }
+            return -1;
         }
 
         function s(open, _closed, parent, pos, newPos) {
@@ -76,11 +120,11 @@
             a[pos] = a[newPos];
             a[newPos] = '0';
             var data = a.join(',');
-            if (contains(_closed, data) == undefined) {
+            if (contains(_closed, data) == -1) {
                 var g = parent.g + 1;
                 var f = g + h(data);
                 var i = contains(open, data);
-                if (i != undefined) {
+                if (i != -1) {
                     if (f < open[i].f) {
                         open[i].parent = parent;
                         open[i].f = f;
@@ -140,7 +184,8 @@
                 cb(open[0]);
             } else {
                 var _closed = [];
-                var handle = setInterval(function () {
+                $('#search').addClass('active');
+                handle = setInterval(function () {
                     if (open.length > 0) {
                         // 1.从 open 中取出最小的 f 值节点放入 closed 中
                         var p = 0;
@@ -152,43 +197,22 @@
                         var n = open.splice(p, 1)[0];
                         _closed.push(n);
                         // 2.计算 上下左右移动的 f 值即当前的 g 值加上估算值 h 并将节点放入 open 中
-                        var pos = function (a) {
+                        var p = function (a) {
                             for (var i = 0; i < a.length; i++) {
-                                if (parseInt(a[i]) == 0) {
+                                if (!parseInt(a[i])) {
                                     return i;
                                 }
                             }
                         } (n.data.split(','));
-                        var x = pos % W;
-                        var y = parseInt(pos / W);
-                        var t;
-                        if (x > 0) {
-                            if (t = s(open, _closed, n, pos, (x - 1) + y * W)) {
+                        $.each(dir(p), function (i, pos) {
+                            var t;
+                            if (t = s(open, _closed, n, p, pos)) {
                                 clearInterval(handle);
+                                $('#search').removeClass('active');
                                 cb(t);
-                                return ;
+                                return false;
                             }
-                        }
-                        if (x < W - 1) {
-                            if (t = s(open, _closed, n, pos, (x + 1) + y * W)) {
-                                clearInterval(handle);
-                                cb(t);
-                                return ;
-                            }
-                        }
-                        if (y > 0) {
-                            if (t = s(open, _closed, n, pos, x + (y - 1) * W)) {
-                                clearInterval(handle);
-                                cb(t);
-                                return ;
-                            }
-                        }
-                        if (y < H - 1) {
-                            if (t = s(open, _closed, n, pos, x + (y + 1) * W)) {
-                                clearInterval(handle);
-                                cb(t);
-                            }
-                        }
+                        });
                     }
                 }, 1);
             }
@@ -222,13 +246,22 @@
             }
         }
 
-        $(function() {
+        function indexOf(elements, e) {
+            for (var i = 0; i < elements.length; i++) {
+                if (elements[i] == e) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        function reload() {
             // 初始化
             var t = '';
             var data = random();
             var a = data.split(',');
             for (var i = 0; i < a.length; i++) {
-                t += parseInt(a[i]) ? '<li>' + a[i] + '</li>' : '<li class="_0"></li>';
+                t += !parseInt(a[i]) ? '<li class="_0"></li>' : '<li><img src="' + a[i] + '.png" /></li>';
             }
             $('#t').html('<ul>' + t + '</ul>');
             elementData = { elements: $('#t li'), data: data, w: $('#t ul').outerWidth() / W, h: $('#t ul').outerHeight() / H };
@@ -236,39 +269,49 @@
                 $(element).css({
                     left: (i % W) * elementData.w + 'px',
                     top: parseInt(i / W) * elementData.h + 'px'
-                })
+                });
+                $(element).on('click', function (e) {
+                    e.preventDefault();
+                    if (!$(this).is('._0')) {
+                        clearInterval(handle);
+                        $('#search').removeClass('active');
+                        //
+                        var p = indexOf(elementData.elements, this);
+                        $.each(dir(p), function (i, pos) {
+                            if ($(elementData.elements[pos]).is('._0')) {
+                                eventQueue.push(
+                                    [ p, pos ]
+                                );
+                                animate();
+                                return false;
+                            }
+                        });
+                    }
+                });
             });
-            
-            search(data, function (n) {
-                do {
-                    eventQueue.splice(0 , 0, n.p);
-                    n = n.parent;
-                } while (n.p);
-                animate();
+            eventQueue = [];
+        }
+        $(function () {
+            reload();
+            $('#search').on('click', function (e) {
+                e.preventDefault();
+                if (!$(this).is('.active')) {
+                    search(elementData.data, function (n) {
+                        do {
+                            eventQueue.splice(0 , 0, n.p);
+                            n = n.parent;
+                        } while (n.p);
+                        animate();
+                    });
+                }
             });
-        });
-
-        // function format(data) {
-        //     var a = data.split(',');
-        //     var t = '';
-        //     for (var i = 0; i < a.length; i++) {
-        //         if (!parseInt(a[i])) {
-        //             t += '<li style="background: #ff0;"></li>';
-        //         } else {
-        //             t += '<li>' + a[i] + '</li>';
-        //         }
-        //     }
-        //     return '<ul>' + t + '</ul>';
-        // }
-        //
-        // '3,2,7,4,5,1,10,8,9,6,0,12,13,14,11,15'
-        // search(random(), function (n) {
-        //     var t = format(n.data);
-        //     while (n = n.parent) {
-        //         t = format(n.data) + '<br/>' + t;
-        //     }
-        //     document.getElementById('t').innerHTML = '<br/>' + t;
-        // });
+            $('#reload').on('click', function (e) {
+                e.preventDefault();
+                clearInterval(handle);
+                $('#search').removeClass('active');
+                reload();
+            });
+        })
     </script>
 </body>
 </html>
