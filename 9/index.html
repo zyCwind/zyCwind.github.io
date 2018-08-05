@@ -33,31 +33,35 @@
             float: right;
         }
         #search, #reload {
-            width: 96px;
-            height: 96px;
-            margin: 5px;
+            width: 60px;
+            margin: 10px 0;
             cursor: pointer;
-            border-radius: 5px;
-            overflow: hidden;
             background: #fff;
+            text-align: center;
         }
         #search.active {
-            background: #f9d962;
+            opacity: 0.5;
+        }
+        #search>div, #reload>div {
+            margin-top: -20px;
+            border: #000 solid 1px;
+            background: #ecc771;
+            border-radius: 5px;
         }
     </style>
 </head>
 <body>
     <div style="width: 320px; margin: auto;">
-        <div style="margin: 10px 0;">zy_cwind@weixin</div>
+        <div style="margin-top: 10px; text-align: center;">滑动拼图</div>
+        <div>
+            <div id="search" style="float: left;"><img src="search.png" style="width: 100%;" /><div>帮助</div></div>
+            <div id="reload"><img src="reload.png" style="width: 100%;" /><div>重来</div></div>
+        </div>
+        <div style="clear: both;"></div>
         <div style="background: #ecc771; border: #000 solid 1px; border-radius: 5px; overflow: hidden;">
-            <div>
-                <div id="search" style="float: left;"><img src="search.png" style="width: 76px; height: 76px; margin: 10px;" /></div>
-                <div id="reload"><img src="reload.png" style="width: 76px; height: 76px; margin: 10px;" /></div>
-            </div>
-            <div style="clear: both;"></div>
             <div id="t"></div>
         </div>
-        <div style="margin: 10px 0; text-align: right;">左键求解, 右键重置 ©2018</div>
+        <div style="margin: 10px 0; text-align: right;">zy_cwind@weixin</div>
     </div>
     <script type="text/javascript">
         var DATA = '1,2,3,4,5,6,7,8,0';
@@ -298,9 +302,11 @@
                 if (!$(this).is('.active')) {
                     search(elementData.data, function (n) {
                         do {
-                            eventQueue.splice(0 , 0, n.p);
+                            if (n.p) {
+                                eventQueue.splice(0 , 0, n.p);
+                            }
                             n = n.parent;
-                        } while (n.p);
+                        } while (n && n.p);
                         animate();
                     });
                 }
