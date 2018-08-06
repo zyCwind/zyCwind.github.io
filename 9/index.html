@@ -70,6 +70,7 @@
         var W = 3;
         var H = DATA.split(',').length / W;
         var R = r(DATA);
+        var K = 5;
 
         var elementData;
         var eventQueue;
@@ -99,7 +100,7 @@
             var r = 0;
             for (var i = 0; i < a.length; i++) {
                 r += function (a, b) {
-                    return 5 * (Math.abs(parseInt(a / W) - parseInt(b / W), 2) + Math.abs((a % W) - (b % W), 2));
+                    return K * (Math.abs(parseInt(a / W) - parseInt(b / W), 2) + Math.abs((a % W) - (b % W), 2));
                 } ((i + 1) % a.length, parseInt(a[i]));
             }
             return r;
@@ -111,43 +112,31 @@
         // 2.计算 上下左右移动的 f 值即当前的 g 值加上估算值 h 并将节点放入 open 中（新节点在 closed 中啥也不干, 新节点在 open 中则对其更新, 设置父节点）
         // 3.若未完成搜索则回到 1
         // 4.输出路径
-        function contains(a, data) {
-            for (var i = 0; i < a.length; i++) {
-                if (a[i].data == data) {
-                    return i;
-                }
-            }
-            return -1;
-        }
-
         function s(open, _closed, parent, pos, newPos) {
             // 新节点在 closed 中啥也不干, 新节点在 open 中则对其更新
-            var a = parent.data.split(',');
+            var a = parent.split(',');
             a[pos] = a[newPos];
             a[newPos] = '0';
             var data = a.join(',');
-            if (contains(_closed, data) == -1) {
-                var g = parent.g + 1;
+            if (!_closed[data]) {
+                var g = _closed[parent].g + 1;
                 var f = g + h(data);
-                var i = contains(open, data);
-                if (i != -1) {
-                    if (f < open[i].f) {
-                        open[i].parent = parent;
-                        open[i].f = f;
-                        open[i].g = g;
-                        open[i].p = [ pos, newPos ];
+                if (open[data]) {
+                    if (f < open[data].f) {
+                        open[data].parent = _closed[parent];
+                        open[data].f = f;
+                        open[data].g = g;
+                        open[data].p = [ pos, newPos ];
                     }
                 } else {
-                    var n = {
-                        data: data,
-                        parent: parent,
+                    open[data] = {
+                        parent: _closed[parent],
                         f: f,
                         g: g,
                         p: [ pos, newPos ]
                     };
-                    open.push(n);
                     if (f == g) {
-                        return n;
+                        return open[data];
                     }
                 }
             }
@@ -185,23 +174,25 @@
         }
 
         function search(data, cb) {
-            var open = [{ data: data, f: h(data), g: 0 }];
-            if (!open[0].f) {
-                cb(open[0]);
+            var open = {};
+            open[data] = {f: h(data), g: 0 };
+            if (!open[data].f) {
+                cb(open[data]);
             } else {
                 var _closed = [];
                 $('#search').addClass('active');
                 handle = setInterval(function () {
-                    if (open.length > 0) {
+                    if (open != {}) {
                         // 1.从 open 中取出最小的 f 值节点放入 closed 中
-                        var p = 0;
-                        for (var i = 1; i < open.length; i++) {
-                            if (open[i].f < open[p].f) {
-                                p = i;
+                        var data;
+                        for (var i in open) {
+                            if (!data || open[i].f < open[data].f) {
+                                data = i;
                             }
                         }
-                        var n = open.splice(p, 1)[0];
-                        _closed.push(n);
+                        _closed[data] = open[data];
+                        delete open[data];
+                        
                         // 2.计算 上下左右移动的 f 值即当前的 g 值加上估算值 h 并将节点放入 open 中
                         var p = function (a) {
                             for (var i = 0; i < a.length; i++) {
@@ -209,13 +200,13 @@
                                     return i;
                                 }
                             }
-                        } (n.data.split(','));
+                        } (data.split(','));
                         $.each(dir(p), function (i, pos) {
-                            var t;
-                            if (t = s(open, _closed, n, p, pos)) {
+                            var n;
+                            if (n = s(open, _closed, data, p, pos)) {
                                 clearInterval(handle);
                                 $('#search').removeClass('active');
-                                cb(t);
+                                cb(n);
                                 return false;
                             }
                         });
