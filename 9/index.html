@@ -99,7 +99,7 @@
             var r = 0;
             for (var i = 0; i < a.length; i++) {
                 r += function (a, b) {
-                    return Math.sqrt(Math.pow(parseInt(a / W) - parseInt(b / W), 2) + Math.pow((a % W) - (b % W), 2));
+                    return 5 * (Math.abs(parseInt(a / W) - parseInt(b / W), 2) + Math.abs((a % W) - (b % W), 2));
                 } ((i + 1) % a.length, parseInt(a[i]));
             }
             return r;
