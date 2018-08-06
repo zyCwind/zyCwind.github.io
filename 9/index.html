@@ -19,15 +19,17 @@
         }
         #t ul>li {
             position: absolute;
-            width: 96px;
-            height: 96px;
+            width: 94px;
+            height: 94px;
             margin: 5px;
             cursor: pointer;
             border-radius: 5px;
             overflow: hidden;
+            border: #ecc771 solid 1px;
         }
         #t ul>li._0 {
             background: rgba(0, 0, 0, 0);
+            border: 0;
         }
         #reload {
             float: right;
@@ -54,8 +56,8 @@
     <div style="width: 320px; margin: auto;">
         <div style="margin-top: 10px; text-align: center;">滑动拼图</div>
         <div>
-            <div id="search" style="float: left;"><img src="search.png" style="width: 100%;" /><div>帮助</div></div>
-            <div id="reload"><img src="reload.png" style="width: 100%;" /><div>重来</div></div>
+            <div id="search" style="float: left;"><img src="images/search.png" style="width: 100%;" /><div>帮助</div></div>
+            <div id="reload"><img src="images/reload.png" style="width: 100%;" /><div>重来</div></div>
         </div>
         <div style="clear: both;"></div>
         <div style="background: #ecc771; border: #000 solid 1px; border-radius: 5px; overflow: hidden;">
@@ -265,7 +267,7 @@
             var data = random();
             var a = data.split(',');
             for (var i = 0; i < a.length; i++) {
-                t += !parseInt(a[i]) ? '<li class="_0"></li>' : '<li><img src="' + a[i] + '.png" /></li>';
+                t += !parseInt(a[i]) ? '<li class="_0"></li>' : '<li><img src="images/' + a[i] + '.jpg" /></li>';
             }
             $('#t').html('<ul>' + t + '</ul>');
             elementData = { elements: $('#t li'), data: data, w: $('#t ul').outerWidth() / W, h: $('#t ul').outerHeight() / H };
