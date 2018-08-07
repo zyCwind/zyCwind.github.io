@@ -50,6 +50,33 @@
             background: #ecc771;
             border-radius: 5px;
         }
+        ._1 {
+            background: url(images/1.jpg);
+        }
+        ._2 {
+            background: url(images/2.jpg);
+        }
+        ._3 {
+            background: url(images/3.jpg);
+        }
+        ._4 {
+            background: url(images/4.jpg);
+        }
+        ._5 {
+            background: url(images/5.jpg);
+        }
+        ._6 {
+            background: url(images/6.jpg);
+        }
+        ._7 {
+            background: url(images/7.jpg);
+        }
+        ._8 {
+            background: url(images/8.jpg);
+        }
+        ._9 {
+            background: url(images/9.jpg);
+        }
     </style>
 </head>
 <body>
@@ -258,7 +285,7 @@
             var data = random();
             var a = data.split(',');
             for (var i = 0; i < a.length; i++) {
-                t += !parseInt(a[i]) ? '<li class="_0"></li>' : '<li><img src="images/' + a[i] + '.jpg" /></li>';
+                t += '<li class="_' + a[i] + '"></li>';
             }
             $('#t').html('<ul>' + t + '</ul>');
             elementData = { elements: $('#t li'), data: data, w: $('#t ul').outerWidth() / W, h: $('#t ul').outerHeight() / H };
