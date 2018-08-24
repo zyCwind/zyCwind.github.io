@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=371, user-scalable=0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <style type="text/css">
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        #cords li {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+        }
+        #a, #b, #c, #d {
+            float: left;
+            width: 80px;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            background-color: bisque;
+            text-align: center;
+            line-height: 22px;
+            font-size: 14px;
+        }
+        #craps {
+            width: 60px;
+            height: 60px;
+            position: absolute;
+            z-index: 17;
+            margin-left: -30px;
+            margin-top: -30px;
+        }
+        #craps[data-p="0"] {
+            left: 260px;
+            top: 280px;
+        }
+        #craps[data-p="1"] {
+            left: 95px;
+            top: 280px;
+        }
+        #craps[data-p="2"] {
+            left: 95px;
+            top: 75px;
+        }
+        #craps[data-p="3"] {
+            left: 260px;
+            top: 75px;
+        }
+        .a {
+            background: url(b.png);
+        }
+        .b {
+            background: url(c.png);
+        }
+        .c {
+            background: url(d.png);
+        }
+        .d {
+            background: url(e.png);
+        }
+        .e {
+            background: url(f.png);
+        }
+        .f {
+            background: url(a.png);
+        }
+        #k li {
+            margin: 2px;
+            border: solid 1px burlywood;
+            background-color: bisque;
+            width: 52px;
+            height: 32px;
+            font-size: 14px;
+            line-height: 32px;
+            text-align: center;
+            float: left;
+        }
+        #input li {
+            width: 40px;
+            height: 40px;
+            background: #fff;
+            border: bisque solid 1px;
+            float: left;
+            margin: 2px;
+            font-size: 14px;
+            line-height: 42px;
+            text-align: center;
+        }
+        #leave::before {
+            content: "\2716"; 
+        }
+    </style>
+    <script src="jquery.min.js"></script>
+    <script src="stomp.min.js"></script>
+</head>
+<body>
+    <div style="padding: 4px; width: 355px; margin: auto;">
+        <div style="margin-top: 10px;">
+            <h3 style="text-align: center; display: none;">飞行棋</h3>
+            <div>zy_cwind@weixin</div>
+        </div>
+        <div style="position: relative; margin-top: 10px; width: 355px; height: 451px;">
+            <div id="token" style="height: 100%; width: 100%; background-color: burlywood;">
+                <div style="padding-top: 48px;">
+                    <div style="text-align: center; margin: 10px; font-size: 14px;">房间号:</div>
+                    <ul id="input" style="list-style-type: none; width: 184px; margin: auto;">
+                        <li></li><li></li><li></li><li></li>
+                    </ul>
+                </div>
+                <div style="position: absolute; bottom: 2px;">
+                    <div style="clear: both;"></div>
+                    <ul id="k" style="list-style-type: none; width: 351px; padding-left: 3px;">
+                        <li>0</li><li>1</li><li>2</li><li>3</li><li>4</li><li>5</li><li>6</li><li>7</li><li>8</li><li>9</li><li><</li>
+                    </ul>
+                </div>
+            </div>
+            <div id="m" style="display: none; background-color: bisque;">
+                <div style="padding: 5px; background-color: bisque; height: 22px; position: relative;">
+                    <div id="q" style="font-size: 14px; line-height: 22px; width: 313px; height: 22px; text-align: center; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;"></div>
+                    <div id="leave" style="position: absolute; top: 0; right: 0; width: 32px; height: 32px; font-size: 14px; line-height: 32px; text-align: center; color: #fff; background-color: indianred;"></div>
+                </div>
+                <div style="padding: 5px; background-color: burlywood; height: 22px;">
+                    <div id="c"></div><div id="d" style="float: right;"></div><div style="clear: both;"></div>
+                </div>
+                <div id="content" style="position: relative; width: 355px; height: 355px;">
+                    <div id="craps" class="a" data-p="0" style="display: none;"></div><img />
+                    <ul id="cords" style="list-style-type: none;">
+                        <li style="left: 27px; top: 338px;" /><li style="left: 3px; top: 338px;" /><li style="left: 3px; top: 314px;" /><li style="left: 27px; top: 314px;" /><li style="left: 338px; top: 338px;" /><li style="left: 314px; top: 338px;" /><li style="left: 314px; top: 314px;" /><li style="left: 338px; top: 314px;" /><li style="left: 338px; top: 27px;" /><li style="left: 314px; top: 27px;" /><li style="left: 314px; top: 3px;" /><li style="left: 338px; top: 3px;" /><li style="left: 27px; top: 27px;" /><li style="left: 3px; top: 27px;" /><li style="left: 3px; top: 3px;" /><li style="left: 27px; top: 3px;" /><li style="left: 227px; top: 339px;" /><li style="left: 339px; top: 114px;" /><li style="left: 114px; top: 2px;" /><li style="left: 2px; top: 227px;" /><li style="left: 227px; top: 29px;" /><li style="left: 149px; top: 291px;" /><li style="left: 305px; top: 206px;" /><li style="left: 72px; top: 156px;" /><li style="left: 29px; top: 227px;" /><li style="left: 291px; top: 149px;" /><li style="left: 206px; top: 305px;" /><li style="left: 156px; top: 72px;" /><li style="left: 277px; top: 277px;" /><li style="left: 93px; top: 36px;" /><li style="left: 36px; top: 93px;" /><li style="left: 291px; top: 79px;" /><li style="left: 79px; top: 291px;" /><li style="left: 255px; top: 255px;" /><li style="left: 241px; top: 241px;" /><li style="left: 227px; top: 227px;" /><li style="left: 213px; top: 213px;" /><li style="left: 199px; top: 199px;" /><li style="left: 185px; top: 185px;" /><li style="left: 185px; top: 72px;" /><li style="left: 135px; top: 305px;" /><li style="left: 312px; top: 227px;" /><li style="left: 50px; top: 149px;" /><li style="left: 36px; top: 206px;" /><li style="left: 270px; top: 156px;" /><li style="left: 192px; top: 291px;" /><li style="left: 114px; top: 29px;" /><li style="left: 263px; top: 291px;" /><li style="left: 50px; top: 79px;" /><li style="left: 248px; top: 36px;" /><li style="left: 305px; top: 93px;" /><li style="left: 65px; top: 277px;" /><li style="left: 156px; top: 185px;" /><li style="left: 142px; top: 199px;" /><li style="left: 128px; top: 213px;" /><li style="left: 114px; top: 227px;" /><li style="left: 100px; top: 241px;" /><li style="left: 86px; top: 255px;" /><li style="left: 192px; top: 50px;" /><li style="left: 114px; top: 312px;" /><li style="left: 270px; top: 185px;" /><li style="left: 36px; top: 135px;" /><li style="left: 50px; top: 192px;" /><li style="left: 312px; top: 114px;" /><li style="left: 185px; top: 270px;" /><li style="left: 135px; top: 36px;" /><li style="left: 305px; top: 248px;" /><li style="left: 248px; top: 305px;" /><li style="left: 65px; top: 65px;" /><li style="left: 262px; top: 50px;" /><li style="left: 50px; top: 262px;" /><li style="left: 156px; top: 156px;" /><li style="left: 142px; top: 142px;" /><li style="left: 128px; top: 128px;" /><li style="left: 114px; top: 114px;" /><li style="left: 100px; top: 100px;" /><li style="left: 86px; top: 86px;" /><li style="left: 206px; top: 36px;" /><li style="left: 156px; top: 270px;" /><li style="left: 291px; top: 192px;" /><li style="left: 29px; top: 114px;" /><li style="left: 72px; top: 185px;" /><li style="left: 227px; top: 312px;" /><li style="left: 149px; top: 50px;" /><li style="left: 291px; top: 263px;" /><li style="left: 79px; top: 50px;" /><li style="left: 277px; top: 65px;" /><li style="left: 36px; top: 248px;" /><li style="left: 93px; top: 305px;" /><li style="left: 255px; top: 86px;" /><li style="left: 241px; top: 100px;" /><li style="left: 227px; top: 114px;" /><li style="left: 213px; top: 128px;" /><li style="left: 199px; top: 142px;" /><li style="left: 185px; top: 156px;" /><li style="left: 305px; top: 135px;" />
+                    </ul>
+                    <div id="container" style="position: absolute; width: 100%; height: 100%; top: 0;"></div>
+                    <div id="start" style="display: none; position: absolute; left: 50%; top: 50%; width: 64px; height: 30px; margin-left: -32px; margin-top: -16px; background-color: rgba(0,0,0,0.5); border: solid burlywood 1px;"><div style="height: 22px; margin: 5px; font-size: 14px; line-height: 22px; color: bisque; text-align: center;">开始</div></div>
+                </div>
+                <div style="padding: 5px; background-color: burlywood; height: 22px;">
+                    <div id="b"></div><div id="a" style="float: right;"></div><div style="clear: both;"></div>
+                </div>
+            </div>
+            <div id="popup" style="display:none; position: absolute; top: 0; background-color: rgba(0,0,0,0.5); height: 100%; width: 100%; z-index: 18;">
+                <div id="reset" style="position: absolute; width: 64px; height: 30px; background-color: burlywood; border: bisque solid 1px; left: 50%; top: 50%; margin-left: -32px; color: bisque;"><div style="height: 22px; margin: 5px; font-size: 14px; line-height: 22px; color: bisque; text-align: center;">重来</div></div>
+            </div>
+        </div>
+        <div style="margin-top: 10px;">
+            <div style="float:right;">©版权所有,转载请注明出处</div>
+            <div style="clear:both;"></div>
+        </div>
+        <script type="text/javascript">
+            /**
+             * S->C:
+             *    c:[p,i] p 位置掷骰子结果是 i
+             *    m:[i,c,t] 移动
+             *    e 进入
+             *    r:[t] t 胜出
+             *    h:[d] 消息
+             * C->S:
+             *    e:[i] 进入房间 i
+             *    m:[i] 移动 i
+             *    c 掷骰子
+             *    s 开局
+             *    q 离开
+             *
+             *
+             */
+            var config = {
+                murl: 'http://106.15.196.7/a/index.php',
+                surl: 'ws://106.15.196.7:61614',
+                path: [
+                    '06,07,05,04,16,82,26,45,64,78,21,40,59,88,32,51,70,87,24,43,62,81,23,42,61,80,30,48,68,85,29,46,65,83,27,39,58,77,20,49,69,86,31,50,63,95,25,44,60,79,22,41,66,84,28,33,34,35,36,37,38',
+                    '02,03,01,00,19,24,43,62,81,23,42,61,80,30,48,68,85,29,46,65,83,27,39,58,77,20,49,69,86,31,50,63,95,25,44,60,79,22,41,66,84,28,47,67,82,26,45,64,78,21,40,59,88,32,51,57,56,55,54,53,52',
+                    '14,15,13,12,18,46,65,83,27,39,58,77,20,49,69,86,31,50,63,95,25,44,60,79,22,41,66,84,28,47,67,82,26,45,64,78,21,40,59,88,32,51,70,87,24,43,62,81,23,42,61,80,30,48,68,76,75,74,73,72,71',
+                    '10,11,09,08,17,63,95,25,44,60,79,22,41,66,84,28,47,67,82,26,45,64,78,21,40,59,88,32,51,70,87,24,43,62,81,23,42,61,80,30,48,68,85,29,46,65,83,27,39,58,77,20,49,69,86,89,90,91,92,93,94'
+                ],
+                y: [
+                    'g.png',
+                    '4.png',
+                    '5.png',
+                    '2.png',
+                    '3.png',
+                    '8.png',
+                    '9.png',
+                    '6.png',
+                    '7.png'
+                ],
+                b: [
+                    'h.png',
+                    '2.png',
+                    '3.png',
+                    '8.png',
+                    '9.png',
+                    '6.png',
+                    '7.png',
+                    '4.png',
+                    '5.png',
+                ],
+                g: [
+                    'i.png',
+                    '8.png',
+                    '9.png',
+                    '6.png',
+                    '7.png',
+                    '4.png',
+                    '5.png',
+                    '2.png',
+                    '3.png'
+                ],
+                r: [
+                    'j.png',
+                    '6.png',
+                    '7.png',
+                    '4.png',
+                    '5.png',
+                    '2.png',
+                    '3.png',
+                    '8.png',
+                    '9.png'
+                ]
+            };
+            var global = {
+                d: [
+                    { name: 'player-1', data: [10, 10, 23, 4] }, , { name: 'player-3', data: [11, 10, 4, -1] }
+                ],
+                t: 'r',
+                r: 's'
+            };
+            var events = { e: [] };
+            var server;
+
+            function Server(m) {
+                var s = function () {
+                    var c = Stomp.client(config.surl);
+                    c.debug = function (d) {};
+                    c.connect('guest', 'guest', function (f) {
+                        if (server.c) {
+                            server.init(server.m);
+                        }
+                        server.c = c;
+                        c.subscribe('/topic/' + server.m.i, function (m) {
+                            server.recv(JSON.parse(m.body));
+                        });
+                    }, function () {
+                        server.recv({ type: 'h', d: '<span style="color: red;">[消息]</span>连接中...' });
+                        setTimeout(s, 2000);
+                    });
+                };
+                this.init(this.m = m, s);
+            };
+
+            Server.prototype.init = function (m, success) {
+                $.ajax({ url: config.murl, method: 'POST', data: { d: JSON.stringify({ s: global.s, m: m }) }, complete: function (XHR, TS) {
+                    if (TS != 'success') {
+                        return ;
+                    }
+                    global = JSON.parse(XHR.responseText);
+                    $('#token').hide();
+                    $('#popup').hide();
+                    $('#craps').hide();
+                    $('#m').show();
+                    $('#q').text('');
+                    $('#input li').text('');
+                    $('#start').css('display', global.r == 'm' ? 'block' : 'none');
+                    $('#content img').attr('src', config[global.t][0]);
+                    $('#container').empty();
+                    for (var i = 0; i < global.d.length; i++) {
+                        if (global.d[i]) {
+                            for (var j = 0; j < global.d[i].data.length; j++) {
+                                var offset =  $('#cords li').eq(parseInt(config.path[i].split(',')[[global.d[i].data[j] < 0 ? j : global.d[i].data[j]]])).offset();
+                                var o = $('<img src="' + config[global.t][global.d[i].data[j] < 0 ? (i + 1) * 2 : i * 2 + 1] + '" style="position: absolute;" data-i="' + i + ',' + j + '" />');
+                                $('#container').append(o);
+                                o.offset({ left: offset.left - 3, top: offset.top - 3 });
+                                o.on('click', function (e) {
+                                    e.preventDefault();
+                                    if (global.p == global.t) {
+                                        var i = $(this).data('i').split(',');
+                                        i[0] = parseInt(i[0]), i[1] = parseInt(i[1]);
+                                        if (!i[0] && global.d[0].data[i[1]] != -1) {
+                                            server.send({ type: 'm', i: i[1] });
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                        $('#' + 'abcd'[i]).text(global.d[i] ? global.d[i].name : '');
+                    }
+                    rearrange();
+                    if (success) {
+                        success();
+                    }
+                }});
+            }
+
+            Server.prototype.send = function (m, success) {
+                $.ajax({ url: config.murl, method: 'POST', data: { d: JSON.stringify({ s: global.s, m: m }) }, complete: function (XHR, TS) {
+                    if (TS == 'success' && success) {
+                        success();
+                    }
+                }});
+            };
+            
+            Server.prototype.recv = function (m) {
+                if (m.type == 'c') {
+                    global.p = m.p;
+                    $('#start').hide();
+                    if (m.i != undefined) {
+                        events.e.push(function (finish) {
+                            craps(m.i, finish);
+                        });
+                    } else if (global.p == global.t) {
+                        events.e.push(function (finish) {
+                            showCraps();
+                            finish();
+                        });
+                    }
+                    handleEvent();
+                } else if (m.type == 'm') {
+                    events.e.push(function (finish) {
+                        moveTo(m.i, m.c, m.t, finish);
+                    });
+                    handleEvent();
+                } else if (m.type == 'e') {
+                    this.init(this.m);
+                } else if (m.type == 'r') {
+                    if (m.t) {
+                        this.recv({
+                            type: 'h',
+                            d: '<span style="color: red;">[消息]</span>' + global.d['ybgrybgr'.substr('ybgrybgr'.indexOf(global.t), 4).indexOf(m.t)].name + '胜出!'
+                        });
+                    }
+                    $('#popup').show();
+                } else if (m.type == 'h') {
+                    $('#q').html(m.d);
+                    if ($('#q').data('h')) {
+                        clearTimeout($('#q').data('h'));
+                    }
+                    $('#q').data('h', setTimeout(function () { $('#q').html(''), $('#q').data('h', ''); }, 2000));
+                }
+            };
+
+            function handleEvent() {
+                if (events.s) {
+                    return ;
+                }
+                if (events.e.length) {
+                    events.s = 'aha';
+                    events.e.shift()(function () {
+                        events.s = false;
+                        handleEvent();
+                    });
+                }
+            }
+
+            function values(i) {
+                i = i.split(',');
+                i[0] = parseInt(i[0]), i[1] = parseInt(i[1]);
+                return parseInt(config.path[i[0]].split(',')[global.d[i[0]].data[i[1]] < 0 ? i[1] : global.d[i[0]].data[i[1]]]);
+            }
+
+            function rearrange() {
+                var o = $('#container img');
+                o.css('z-index', '');
+                o.sort(function (a, b) {
+                    return values($(a).data('i')) < values($(b).data('i'));
+                });
+                var i = 0;
+                for (; i < o.length; i++) {
+                    var a = values($(o[i]).data('i'));
+                    var offset = $('#cords li').eq(a).offset();
+                    $(o[i]).offset({ left: offset.left - 3, top: offset.top - 3 });
+                    $(o[i]).css('z-index', 0);
+                    {
+                        var j = i + 1;
+                        for (; j < o.length; j++) {
+                            if (a == values($(o[j]).data('i'))) {
+                                $(o[j]).offset({ left: offset.left - 3, top: offset.top - 3 - 4 * (j - i) });
+                                $(o[j]).css('z-index', j - i);
+                            } else {
+                                break;
+                            }
+                        }
+                        i = j - 1;
+                    }
+                }
+            }
+
+            function showCraps() {
+                if ($('#craps').data('h')) {
+                    clearInterval($('#craps').data('h'));
+                    $('#craps').data('h', '');
+                }
+                $('#craps').attr('data-p', 'ybgrybgr'.substr('ybgrybgr'.indexOf(global.t), 4).indexOf(global.p)), $('#craps').css('background-position', '');
+                $('#craps').show();
+            }
+
+            function craps(i, finish) {
+                showCraps();
+                $('#craps').attr('class', 'a,b,c,d,e,f'.split(',')[i]);
+                $('#craps').data('i', 0);
+                $('#craps').data('h', setInterval(function () {
+                    var i = $('#craps').data('i');
+                    if (i < 7) {
+                        $('#craps').css('background-position', -i * 60 + 'px  0px'), $('#craps').data('i', ++i);
+                        return ;
+                    }
+                    setTimeout(function () {
+                        $('#craps').hide();
+                        if (finish) {
+                            finish();
+                        }
+                    }, 1000);
+                    clearInterval($('#craps').data('h'));
+                    $('#craps').data('h', '');
+                }, 32));
+            }
+
+            function moveTo(i, c, t, finish) {
+                var m = function(e, s) {
+                    var offset =  $('#cords li').eq(parseInt(config.path[i[0]].split(',')[s < 0 ? i[1] : s])).offset();
+                    $('#container img[data-i="' + i + '"').animate({ left: offset.left - $('#content').offset().left - 3, top: offset.top - $('#content').offset().top - 3 }, 'fast', 'swing', function () {
+                        if (s == t || s < 0) {
+                            e.data('h', '');
+                            if (s < 0) {
+                                e.attr('src', config[global.t][(i[0] + 1) * 2]);
+                            }
+                            rearrange();
+                            if (finish) {
+                                finish();
+                            }
+                            return ;
+                        }
+                        m(e, s < t ? s + 1 : s - 1);
+                    });
+                };
+                i = i.split(',');
+                i[0] = 'ybgrybgr'.substr('ybgrybgr'.indexOf(global.t), 4).indexOf(i[0]), i[1] = parseInt(i[1]);
+                {
+                    var e = $('#container img[data-i="' + i.join(',') + '"');
+                    if (e.data('h')) {
+                        return ;
+                    }
+                    e.css('z-index', 16);
+                    m(e, c ? t : (global.d[i[0]].data[i[1]] < 4 ? 4 : global.d[i[0]].data[i[1]] < t ? global.d[i[0]].data[i[1]] + 1 : global.d[i[0]].data[i[1]] - 1));
+                    e.data('h', 1);
+                    global.d[i[0]].data[i[1]] = t;
+                }
+            }
+
+            $(function () {
+                var r = window.location.search.substr(1).match(new RegExp('(^|&)i=([^&]*)(&|$)'));
+                if (r) {
+                    server = new Server({ type: 'e', i: unescape(r[2]) });
+                    return ;
+                }
+                $('#k li').on('click', function (e) {
+                    e.preventDefault();
+                    var t = $(this).text();
+                    if (t == '<') {
+                        var p;
+                        $('#input li').each(function (i, e) {
+                            if (!$(this).text()) {
+                                p = i;
+                                return false;
+                            }
+                        });
+                        if (p) {
+                            $('#input li').eq(p - 1).text('');
+                        } else if (p == undefined) {
+                            $('#input li').last().text('');
+                        }
+                        return ;
+                    }
+                    $('#input li').each(function (i, e) {
+                        if ($(this).text()) {
+                            return ;
+                        }
+                        $(this).text(t);
+                        if ($('#input li').length - 1 == i) {
+                            t = '';
+                            $('#input li').each(function (i, e) {
+                                t += $(this).text();
+                            });
+                            server = new Server({ type: 'e', i: t });
+                        }
+                        return false;
+                    });
+                });
+                $('#start').on('click', function (e) {
+                    e.preventDefault();
+                    server.send({ type: 's' });
+                });
+                $('#reset').on('click', function (e) {
+                    e.preventDefault();
+                    server.init(server.m);
+                });
+                $('#leave').on('click', function (e) {
+                    e.preventDefault();
+                    for(var i in server.c.subscriptions) {
+                        server.c.unsubscribe(i);
+                    }
+                    server.send({ type: 'q' }, function () {
+                        server.c.disconnect(function () {
+                            $('#token').show();
+                            $('#m').hide();
+                        });
+                    });
+                });
+                $('#craps').on('click', function (e) {
+                    e.preventDefault();
+                    if (global.p == global.t) {
+                        server.send({ type: 'c' });
+                        if ($('#craps').data('h')) {
+                            return ;
+                        }
+                        $('#craps').data('i', 0);
+                        $('#craps').data('h', setInterval(function () {
+                            var i = $('#craps').data('i');
+                            $('#craps').css('background-position', -(i % 7) * 60 + 'px  0px');
+                            $('#craps').data('i', i + 1);
+                        }, 32));
+                    }
+                });
+            });
+        </script>
+    </div>
+    <div style="display: none;">
+        <div class="a"></div>
+        <div class="b"></div>
+        <div class="c"></div>
+        <div class="d"></div>
+        <div class="e"></div>
+        <div class="f"></div>
+        <img src="2.png" />
+        <img src="3.png" />
+        <img src="4.png" />
+        <img src="5.png" />
+        <img src="6.png" />
+        <img src="7.png" />
+        <img src="8.png" />
+        <img src="9.png" />
+        <img src="g.png" />
+        <img src="h.png" />
+        <img src="i.png" />
+        <img src="j.png" />
+    </div>    
+</body>
+</html>
