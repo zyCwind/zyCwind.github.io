@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=371, user-scalable=0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <style type="text/css">
-        *{margin:0;padding:0;-webkit-tap-highlight-color:rgba(0,0,0,0);outline:none;}#cords li{position:absolute;width:14px;height:14px;}#y,#b,#g,#r{float:left;width:80px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;background-color:bisque;text-align:center;line-height:22px;font-size:14px;}#keyboard li{margin:2px;border:solid 1px burlywood;background-color:bisque;width:52px;height:32px;font-size:14px;line-height:32px;text-align:center;float:left;}#room li{width:40px;height:40px;background:#fff;border:bisque solid 1px;float:left;margin:2px;font-size:14px;line-height:42px;text-align:center;}#leave::before{content:"\2716";}#bg,#craps,.y0,y1,.b0,.b1,.g0,.g1,.r0,.r1{background:url(images/1.png) no-repeat;}#bg{width:355px;height:355px;}#bg.y{background-position:0 0;}#bg.b{background-position:-355px 0;}#bg.g{background-position:0 -355px;}#bg.r{background-position:-355px -355px;}#craps{width:60px;height:60px;position:absolute;z-index:17;margin-left:-30px;margin-top:-30px;}#craps.y{left:260px;top:280px;}#craps.b{left:95px;top:280px;}#craps.g{left:95px;top:75px;}#craps.r{left:260px;top:75px;}#craps[data-i="0"]{background-position:0 -770px;}#craps[data-i="1"]{background-position:0 -830px;}#craps[data-i="2"]{background-position:0 -890px;}#craps[data-i="3"]{background-position:0 -950px;}#craps[data-i="4"]{background-position:0 -1010px;}#craps[data-i="5"]{background-position:0 -710px;}.y0,y1,.b0,.b1,.g0,.g1,.r0,.r1{width:20px;height:20px;}.y0{background-position:-460px -710px;}.y1{background-position:-480px -710px;}.b0{background-position:-420px -710px;}.b1{background-position:-440px -710px;}.g0{background-position:-540px -710px;}.g1{background-position:-560px -710px;}.r0{background-position:-500px -710px;}.r1{background-position:-520px -710px;}#ch .s::before {content: '\2714'}#ch{bottom: -32px;}#ch.on{bottom: 0;}
+        *{margin:0;padding:0;-webkit-tap-highlight-color:rgba(0,0,0,0);outline:none;}#cords li{position:absolute;width:14px;height:14px;}#y,#b,#g,#r{float:left;width:80px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;background-color:bisque;text-align:center;line-height:22px;font-size:14px;}#keyboard li{margin:2px;border:solid 1px burlywood;background-color:bisque;width:52px;height:32px;font-size:14px;line-height:32px;text-align:center;float:left;}#room li{width:40px;height:40px;background:#fff;border:bisque solid 1px;float:left;margin:2px;font-size:14px;line-height:42px;text-align:center;}#bg,#craps,.y0,y1,.b0,.b1,.g0,.g1,.r0,.r1,.s0{background:url(images/1.png) no-repeat;}#bg{width:355px;height:355px;}#bg.y{background-position:0 0;}#bg.b{background-position:-355px 0;}#bg.g{background-position:0 -355px;}#bg.r{background-position:-355px -355px;}#craps{width:60px;height:60px;position:absolute;z-index:17;margin-left:-30px;margin-top:-30px;}#craps.y{left:260px;top:280px;}#craps.b{left:95px;top:280px;}#craps.g{left:95px;top:75px;}#craps.r{left:260px;top:75px;}#craps[data-i="0"]{background-position:0 -770px;}#craps[data-i="1"]{background-position:0 -830px;}#craps[data-i="2"]{background-position:0 -890px;}#craps[data-i="3"]{background-position:0 -950px;}#craps[data-i="4"]{background-position:0 -1010px;}#craps[data-i="5"]{background-position:0 -710px;}.y0,y1,.b0,.b1,.g0,.g1,.r0,.r1{width:20px;height:20px;}.y0{background-position:-460px -710px;}.y1{background-position:-480px -710px;}.b0{background-position:-420px -710px;}.b1{background-position:-440px -710px;}.g0{background-position:-540px -710px;}.g1{background-position:-560px -710px;}.r0{background-position:-500px -710px;}.r1{background-position:-520px -710px;}#ch{bottom:-32px;}#ch.on{bottom:0;}
     </style>
     <script src="js/jquery.min.js"></script><script src="js/stomp.min.js"></script>
 </head>
@@ -33,7 +33,7 @@
             <div id="m" style="display: none; background-color: bisque;">
                 <div style="padding: 5px; background-color: bisque; height: 22px; position: relative;">
                     <div id="q" style="font-size: 14px; line-height: 22px; width: 313px; height: 22px; text-align: center; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;"></div>
-                    <div id="leave" style="position: absolute; top: 0; right: 0; width: 32px; height: 32px; font-size: 14px; line-height: 32px; text-align: center; color: #fff; background-color: indianred;"></div>
+                    <div id="leave" style="position: absolute; top: 0; right: 0; width: 32px; height: 32px; font-size: 14px; line-height: 32px; text-align: center; color: #fff; background-color: indianred;"><div class="s0" style="width: 20px; height: 20px; background-position: -580px -710px; margin: 6px;"></div></div>
                 </div>
                 <div style="padding: 5px; background-color: burlywood; height: 22px;">
                     <div id="g"></div><div id="r" style="float: right;"></div><div style="clear: both;"></div>
@@ -48,9 +48,9 @@
                     <div id="ch" style="position: absolute;">
                         <div id="onoff" style="position: absolute; top: -16px; left: 50%; margin-left: -16px; width: 0; border: solid transparent 16px; border-top-width: 0; border-bottom-color: rgba(0,0,0,0.5);"></div>
                         <div style="float:left; background-color: rgba(0,0,0,0.5); width: 323px; height: 32px;">
-                            <input style="width: 313px; height: 32px; border: 0; background-color: transparent; color: #fff; padding: 0 5px;">
+                            <input style="width: 313px; height: 32px; line-height: 32px; font-size: 14px; border: 0; background-color: transparent; color: #fff; padding: 0 5px;">
                         </div>
-                        <div class="s" style="float:left; width: 32px; height: 32px; font-size: 14px; line-height: 32px; text-align: center; color: #fff; background-color: green;"></div>
+                        <div class="s" style="float:left; width: 32px; height: 32px; font-size: 14px; line-height: 32px; text-align: center; color: #fff; background-color: green;"><div class="s0" style="width: 20px; height: 20px; background-position: -600px -710px; margin: 6px;"></div></div>
                     </div>
                 </div>
                 <div style="padding: 5px; background-color: burlywood; height: 22px;">
@@ -67,7 +67,7 @@
         </div>
         <script type="text/javascript">
             var config = {
-                murl: 'http://localhost/index.php',
+                murl: 'http://106.15.196.7/index.php',
                 surl: 'ws://106.15.196.7:61614',
                 path: [
                     '06,07,05,04,16,82,26,45,64,78,21,40,59,88,32,51,70,87,24,43,62,81,23,42,61,80,30,48,68,85,29,46,65,83,27,39,58,77,20,49,69,86,31,50,63,95,25,44,60,79,22,41,66,84,28,33,34,35,36,37,38',
@@ -78,7 +78,7 @@
             };
             
             /**
-             * global = {
+             * common = {
              *     d: [
              *         {
              *             name: '00001',
@@ -98,7 +98,7 @@
              * };
              *
              */
-            var global;
+            var common;
             var events = { e: [] };
             var server;
 
@@ -125,43 +125,46 @@
             Server.prototype.init = function (m, success) {
                 this.send(m, function (responseData) {
                     if (responseData) {
-                        global = responseData;
+                        common = responseData;
+                        {
+                            document.cookie = 't=' + common.t + ';';
+                        }
                         $('#token').hide();
                         $('#popup').hide();
                         $('#m').show();
                         $('#q').empty();
                         $('#room li').empty();
-                        $('#bg').attr('class', global.c);
+                        $('#bg').attr('class', common.c);
                         $('#craps').hide();
                         $('#start').hide();
-                        if (global.s) {
-                            if (global.s.i) {
+                        if (common.s) {
+                            if (common.s.i) {
                                 showCraps();
                             }
-                        } else if (global.o) {
+                        } else if (common.o) {
                             $('#start').show();
                         }
                         $('#container').empty();
-                        for (var i = 0; i < global.d.length; i++) {
-                            if (global.d[i]) {
-                                for (var j = 0; j < global.d[i].data.length; j++) {
-                                    var offset =  $('#cords li').eq(parseInt(config.path[i].split(',')[[global.d[i].data[j] < 0 ? j : global.d[i].data[j]]])).offset();
-                                    var o = $('<div class="' + 'ybgrybgr'.substr('ybgrybgr'.indexOf(global.c), 4)[i] + (global.d[i].data[j] < 0 ? 1 : 0) + '" style="position: absolute;" data-i="' + i + ',' + j + '"></div>');
+                        for (var i = 0; i < common.d.length; i++) {
+                            if (common.d[i]) {
+                                for (var j = 0; j < common.d[i].data.length; j++) {
+                                    var offset =  $('#cords li').eq(parseInt(config.path[i].split(',')[[common.d[i].data[j] < 0 ? j : common.d[i].data[j]]])).offset();
+                                    var o = $('<div class="' + 'ybgrybgr'.substr('ybgrybgr'.indexOf(common.c), 4)[i] + (common.d[i].data[j] < 0 ? 1 : 0) + '" style="position: absolute;" data-i="' + i + ',' + j + '"></div>');
                                     $('#container').append(o);
                                     o.offset({ left: offset.left - 3, top: offset.top - 3 });
                                     o.on('click', function (e) {
                                         e.preventDefault();
-                                        if (!events.s && global.s.p == global.c) {
+                                        if (!events.s && common.s.p == common.c) {
                                             var i = $(this).data('i').split(',');
                                             i[0] = parseInt(i[0]), i[1] = parseInt(i[1]);
-                                            if (!i[0] && global.d[0].data[i[1]] != -1) {
+                                            if (!i[0] && common.d[0].data[i[1]] != -1) {
                                                 server.send({ type: 'm', i: i[1] });
                                             }
                                         }
                                     });
                                 }
                             }
-                            $('#' + 'ybgr'[i]).text(global.d[i] ? global.d[i].name : '');
+                            $('#' + 'ybgr'[i]).text(common.d[i] ? common.d[i].name : '');
                         }
                         rearrange();
                         if (success) {
@@ -173,8 +176,8 @@
 
             Server.prototype.send = function (m, success) {
                 var data = { m: m };
-                if (global && global.t) {
-                    data.t = global.t;
+                if (common && common.t) {
+                    data.t = common.t;
                 }
                 $.ajax({ url: config.murl, method: 'GET', data: { d: JSON.stringify(data) }, complete: function (XHR, TS) {
                     if (TS == 'success' && success) {
@@ -189,13 +192,13 @@
             
             Server.prototype.recv = function (m) {
                 if (m.type == 'c') {
-                    global.s = { p: m.p, i: true };
+                    common.s = { p: m.p, i: true };
                     $('#start').hide();
                     if (m.i != undefined) {
                         events.e.push(function (finish) {
                             craps(m.i, finish);
                         });
-                    } else if (global.s.p == global.c) {
+                    } else if (common.s.p == common.c) {
                         events.e.push(function (finish) {
                             showCraps();
                             finish();
@@ -213,7 +216,7 @@
                     if (m.t) {
                         this.recv({
                             type: 'h',
-                            d: '<span style="color: red;">[消息]</span>' + global.d['ybgrybgr'.substr('ybgrybgr'.indexOf(global.c), 4).indexOf(m.t)].name + '胜出!'
+                            d: '<span style="color: red;">[消息]</span>' + common.d['ybgrybgr'.substr('ybgrybgr'.indexOf(common.c), 4).indexOf(m.t)].name + '胜出!'
                         });
                     }
                     $('#popup').show();
@@ -242,14 +245,15 @@
             function values(i) {
                 i = i.split(',');
                 i[0] = parseInt(i[0]), i[1] = parseInt(i[1]);
-                return parseInt(config.path[i[0]].split(',')[global.d[i[0]].data[i[1]] < 0 ? i[1] : global.d[i[0]].data[i[1]]]);
+                return parseInt(config.path[i[0]].split(',')[common.d[i[0]].data[i[1]] < 0 ? i[1] : common.d[i[0]].data[i[1]]]);
             }
 
             function rearrange() {
+                console.log('r');
                 var o = $('#container div');
                 o.css('z-index', '');
                 o.sort(function (a, b) {
-                    return values($(a).data('i')) < values($(b).data('i'));
+                    return values($(a).data('i')) - values($(b).data('i'));
                 });
                 var i = 0;
                 for (; i < o.length; i++) {
@@ -277,7 +281,7 @@
                     clearInterval($('#craps').data('h'));
                     $('#craps').data('h', '');
                 }
-                $('#craps').attr('class', 'ybgr'['ybgrybgr'.substr('ybgrybgr'.indexOf(global.c), 4).indexOf(global.s.p)]);
+                $('#craps').attr('class', 'ybgr'['ybgrybgr'.substr('ybgrybgr'.indexOf(common.c), 4).indexOf(common.s.p)]);
                 $('#craps').show();
             }
 
@@ -319,16 +323,16 @@
                     });
                 };
                 i = i.split(',');
-                i[0] = 'ybgrybgr'.substr('ybgrybgr'.indexOf(global.c), 4).indexOf(i[0]), i[1] = parseInt(i[1]);
+                i[0] = 'ybgrybgr'.substr('ybgrybgr'.indexOf(common.c), 4).indexOf(i[0]), i[1] = parseInt(i[1]);
                 {
                     var e = $('#container div[data-i="' + i.join(',') + '"]');
                     if (e.data('h')) {
                         return ;
                     }
                     e.css('z-index', 16);
-                    m(e, c ? t : (global.d[i[0]].data[i[1]] < 4 ? 4 : global.d[i[0]].data[i[1]] < t ? global.d[i[0]].data[i[1]] + 1 : global.d[i[0]].data[i[1]] - 1));
+                    m(e, c ? t : (common.d[i[0]].data[i[1]] < 4 ? 4 : common.d[i[0]].data[i[1]] < t ? common.d[i[0]].data[i[1]] + 1 : common.d[i[0]].data[i[1]] - 1));
                     e.data('h', 1);
-                    global.d[i[0]].data[i[1]] = t;
+                    common.d[i[0]].data[i[1]] = t;
                 }
             }
 
@@ -341,6 +345,10 @@
             }
 
             $(function () {
+                var r = document.cookie.match(new RegExp('(^| )t=([^;]*)(;|$)'));
+                if (r) {
+                    common = { t: r[2] };
+                }
                 load();
                 $('#keyboard li').on('click', function (e) {
                     e.preventDefault();
@@ -399,7 +407,7 @@
                 });
                 $('#craps').on('click', function (e) {
                     e.preventDefault();
-                    if (global.s.i && global.s.p == global.c && !events.s) {
+                    if (common.s.i && common.s.p == common.c && !events.s) {
                         server.send({ type: 'c' });
                         if ($('#craps').data('h')) {
                             return ;
@@ -426,5 +434,6 @@
             });
         </script>
     </div>
+    <img src="images/1.png" style="display: none;">
 </body>
 </html>
