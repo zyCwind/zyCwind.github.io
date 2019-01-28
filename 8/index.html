@@ -1,139 +1,1145 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>小浣熊水浒卡</title>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, user-scalable=0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script type="text/javascript">
+    // cuon-matrix.js (c) 2012 kanda and matsuda
+    /** 
+    * This is a class treating 4x4 matrix.
+    * This class contains the function that is equivalent to OpenGL matrix stack.
+    * The matrix after conversion is calculated by multiplying a conversion matrix from the right.
+    * The matrix is replaced by the calculated result.
+    */
+
+    /**
+    * Constructor of Matrix4
+    * If opt_src is specified, new matrix is initialized by opt_src.
+    * Otherwise, new matrix is initialized by identity matrix.
+    * @param opt_src source matrix(option)
+    */
+    var Matrix4 = function(opt_src) {
+    var i, s, d;
+    if (opt_src && typeof opt_src === 'object' && opt_src.hasOwnProperty('elements')) {
+        s = opt_src.elements;
+        d = new Float32Array(16);
+        for (i = 0; i < 16; ++i) {
+        d[i] = s[i];
+        }
+        this.elements = d;
+    } else {
+        this.elements = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
+    }
+    };
+
+    /**
+    * Set the identity matrix.
+    * @return this
+    */
+    Matrix4.prototype.setIdentity = function() {
+    var e = this.elements;
+    e[0] = 1;   e[4] = 0;   e[8]  = 0;   e[12] = 0;
+    e[1] = 0;   e[5] = 1;   e[9]  = 0;   e[13] = 0;
+    e[2] = 0;   e[6] = 0;   e[10] = 1;   e[14] = 0;
+    e[3] = 0;   e[7] = 0;   e[11] = 0;   e[15] = 1;
+    return this;
+    };
+
+    /**
+    * Copy matrix.
+    * @param src source matrix
+    * @return this
+    */
+    Matrix4.prototype.set = function(src) {
+    var i, s, d;
+
+    s = src.elements;
+    d = this.elements;
+
+    if (s === d) {
+        return;
+    }
+        
+    for (i = 0; i < 16; ++i) {
+        d[i] = s[i];
+    }
+
+    return this;
+    };
+
+    /**
+    * Multiply the matrix from the right.
+    * @param other The multiply matrix
+    * @return this
+    */
+    Matrix4.prototype.concat = function(other) {
+    var i, e, a, b, ai0, ai1, ai2, ai3;
+    
+    // Calculate e = a * b
+    e = this.elements;
+    a = this.elements;
+    b = other.elements;
+    
+    // If e equals b, copy b to temporary matrix.
+    if (e === b) {
+        b = new Float32Array(16);
+        for (i = 0; i < 16; ++i) {
+        b[i] = e[i];
+        }
+    }
+    
+    for (i = 0; i < 4; i++) {
+        ai0=a[i];  ai1=a[i+4];  ai2=a[i+8];  ai3=a[i+12];
+        e[i]    = ai0 * b[0]  + ai1 * b[1]  + ai2 * b[2]  + ai3 * b[3];
+        e[i+4]  = ai0 * b[4]  + ai1 * b[5]  + ai2 * b[6]  + ai3 * b[7];
+        e[i+8]  = ai0 * b[8]  + ai1 * b[9]  + ai2 * b[10] + ai3 * b[11];
+        e[i+12] = ai0 * b[12] + ai1 * b[13] + ai2 * b[14] + ai3 * b[15];
+    }
+    
+    return this;
+    };
+    Matrix4.prototype.multiply = Matrix4.prototype.concat;
+
+    /**
+    * Multiply the three-dimensional vector.
+    * @param pos  The multiply vector
+    * @return The result of multiplication(Float32Array)
+    */
+    Matrix4.prototype.multiplyVector3 = function(pos) {
+    var e = this.elements;
+    var p = pos.elements;
+    var v = new Vector3();
+    var result = v.elements;
+
+    result[0] = p[0] * e[0] + p[1] * e[4] + p[2] * e[ 8] + e[11];
+    result[1] = p[0] * e[1] + p[1] * e[5] + p[2] * e[ 9] + e[12];
+    result[2] = p[0] * e[2] + p[1] * e[6] + p[2] * e[10] + e[13];
+
+    return v;
+    };
+
+    /**
+    * Multiply the four-dimensional vector.
+    * @param pos  The multiply vector
+    * @return The result of multiplication(Float32Array)
+    */
+    Matrix4.prototype.multiplyVector4 = function(pos) {
+    var e = this.elements;
+    var p = pos.elements;
+    var v = new Vector4();
+    var result = v.elements;
+
+    result[0] = p[0] * e[0] + p[1] * e[4] + p[2] * e[ 8] + p[3] * e[12];
+    result[1] = p[0] * e[1] + p[1] * e[5] + p[2] * e[ 9] + p[3] * e[13];
+    result[2] = p[0] * e[2] + p[1] * e[6] + p[2] * e[10] + p[3] * e[14];
+    result[3] = p[0] * e[3] + p[1] * e[7] + p[2] * e[11] + p[3] * e[15];
+
+    return v;
+    };
+
+    /**
+    * Transpose the matrix.
+    * @return this
+    */
+    Matrix4.prototype.transpose = function() {
+    var e, t;
+
+    e = this.elements;
+
+    t = e[ 1];  e[ 1] = e[ 4];  e[ 4] = t;
+    t = e[ 2];  e[ 2] = e[ 8];  e[ 8] = t;
+    t = e[ 3];  e[ 3] = e[12];  e[12] = t;
+    t = e[ 6];  e[ 6] = e[ 9];  e[ 9] = t;
+    t = e[ 7];  e[ 7] = e[13];  e[13] = t;
+    t = e[11];  e[11] = e[14];  e[14] = t;
+
+    return this;
+    };
+
+    /**
+    * Calculate the inverse matrix of specified matrix, and set to this.
+    * @param other The source matrix
+    * @return this
+    */
+    Matrix4.prototype.setInverseOf = function(other) {
+    var i, s, d, inv, det;
+
+    s = other.elements;
+    d = this.elements;
+    inv = new Float32Array(16);
+
+    inv[0]  =   s[5]*s[10]*s[15] - s[5] *s[11]*s[14] - s[9] *s[6]*s[15]
+                + s[9]*s[7] *s[14] + s[13]*s[6] *s[11] - s[13]*s[7]*s[10];
+    inv[4]  = - s[4]*s[10]*s[15] + s[4] *s[11]*s[14] + s[8] *s[6]*s[15]
+                - s[8]*s[7] *s[14] - s[12]*s[6] *s[11] + s[12]*s[7]*s[10];
+    inv[8]  =   s[4]*s[9] *s[15] - s[4] *s[11]*s[13] - s[8] *s[5]*s[15]
+                + s[8]*s[7] *s[13] + s[12]*s[5] *s[11] - s[12]*s[7]*s[9];
+    inv[12] = - s[4]*s[9] *s[14] + s[4] *s[10]*s[13] + s[8] *s[5]*s[14]
+                - s[8]*s[6] *s[13] - s[12]*s[5] *s[10] + s[12]*s[6]*s[9];
+
+    inv[1]  = - s[1]*s[10]*s[15] + s[1] *s[11]*s[14] + s[9] *s[2]*s[15]
+                - s[9]*s[3] *s[14] - s[13]*s[2] *s[11] + s[13]*s[3]*s[10];
+    inv[5]  =   s[0]*s[10]*s[15] - s[0] *s[11]*s[14] - s[8] *s[2]*s[15]
+                + s[8]*s[3] *s[14] + s[12]*s[2] *s[11] - s[12]*s[3]*s[10];
+    inv[9]  = - s[0]*s[9] *s[15] + s[0] *s[11]*s[13] + s[8] *s[1]*s[15]
+                - s[8]*s[3] *s[13] - s[12]*s[1] *s[11] + s[12]*s[3]*s[9];
+    inv[13] =   s[0]*s[9] *s[14] - s[0] *s[10]*s[13] - s[8] *s[1]*s[14]
+                + s[8]*s[2] *s[13] + s[12]*s[1] *s[10] - s[12]*s[2]*s[9];
+
+    inv[2]  =   s[1]*s[6]*s[15] - s[1] *s[7]*s[14] - s[5] *s[2]*s[15]
+                + s[5]*s[3]*s[14] + s[13]*s[2]*s[7]  - s[13]*s[3]*s[6];
+    inv[6]  = - s[0]*s[6]*s[15] + s[0] *s[7]*s[14] + s[4] *s[2]*s[15]
+                - s[4]*s[3]*s[14] - s[12]*s[2]*s[7]  + s[12]*s[3]*s[6];
+    inv[10] =   s[0]*s[5]*s[15] - s[0] *s[7]*s[13] - s[4] *s[1]*s[15]
+                + s[4]*s[3]*s[13] + s[12]*s[1]*s[7]  - s[12]*s[3]*s[5];
+    inv[14] = - s[0]*s[5]*s[14] + s[0] *s[6]*s[13] + s[4] *s[1]*s[14]
+                - s[4]*s[2]*s[13] - s[12]*s[1]*s[6]  + s[12]*s[2]*s[5];
+
+    inv[3]  = - s[1]*s[6]*s[11] + s[1]*s[7]*s[10] + s[5]*s[2]*s[11]
+                - s[5]*s[3]*s[10] - s[9]*s[2]*s[7]  + s[9]*s[3]*s[6];
+    inv[7]  =   s[0]*s[6]*s[11] - s[0]*s[7]*s[10] - s[4]*s[2]*s[11]
+                + s[4]*s[3]*s[10] + s[8]*s[2]*s[7]  - s[8]*s[3]*s[6];
+    inv[11] = - s[0]*s[5]*s[11] + s[0]*s[7]*s[9]  + s[4]*s[1]*s[11]
+                - s[4]*s[3]*s[9]  - s[8]*s[1]*s[7]  + s[8]*s[3]*s[5];
+    inv[15] =   s[0]*s[5]*s[10] - s[0]*s[6]*s[9]  - s[4]*s[1]*s[10]
+                + s[4]*s[2]*s[9]  + s[8]*s[1]*s[6]  - s[8]*s[2]*s[5];
+
+    det = s[0]*inv[0] + s[1]*inv[4] + s[2]*inv[8] + s[3]*inv[12];
+    if (det === 0) {
+        return this;
+    }
+
+    det = 1 / det;
+    for (i = 0; i < 16; i++) {
+        d[i] = inv[i] * det;
+    }
+
+    return this;
+    };
+
+    /**
+    * Calculate the inverse matrix of this, and set to this.
+    * @return this
+    */
+    Matrix4.prototype.invert = function() {
+    return this.setInverseOf(this);
+    };
+
+    /**
+    * Set the orthographic projection matrix.
+    * @param left The coordinate of the left of clipping plane.
+    * @param right The coordinate of the right of clipping plane.
+    * @param bottom The coordinate of the bottom of clipping plane.
+    * @param top The coordinate of the top top clipping plane.
+    * @param near The distances to the nearer depth clipping plane. This value is minus if the plane is to be behind the viewer.
+    * @param far The distances to the farther depth clipping plane. This value is minus if the plane is to be behind the viewer.
+    * @return this
+    */
+    Matrix4.prototype.setOrtho = function(left, right, bottom, top, near, far) {
+    var e, rw, rh, rd;
+
+    if (left === right || bottom === top || near === far) {
+        throw 'null frustum';
+    }
+
+    rw = 1 / (right - left);
+    rh = 1 / (top - bottom);
+    rd = 1 / (far - near);
+
+    e = this.elements;
+
+    e[0]  = 2 * rw;
+    e[1]  = 0;
+    e[2]  = 0;
+    e[3]  = 0;
+
+    e[4]  = 0;
+    e[5]  = 2 * rh;
+    e[6]  = 0;
+    e[7]  = 0;
+
+    e[8]  = 0;
+    e[9]  = 0;
+    e[10] = -2 * rd;
+    e[11] = 0;
+
+    e[12] = -(right + left) * rw;
+    e[13] = -(top + bottom) * rh;
+    e[14] = -(far + near) * rd;
+    e[15] = 1;
+
+    return this;
+    };
+
+    /**
+    * Multiply the orthographic projection matrix from the right.
+    * @param left The coordinate of the left of clipping plane.
+    * @param right The coordinate of the right of clipping plane.
+    * @param bottom The coordinate of the bottom of clipping plane.
+    * @param top The coordinate of the top top clipping plane.
+    * @param near The distances to the nearer depth clipping plane. This value is minus if the plane is to be behind the viewer.
+    * @param far The distances to the farther depth clipping plane. This value is minus if the plane is to be behind the viewer.
+    * @return this
+    */
+    Matrix4.prototype.ortho = function(left, right, bottom, top, near, far) {
+    return this.concat(new Matrix4().setOrtho(left, right, bottom, top, near, far));
+    };
+
+    /**
+    * Set the perspective projection matrix.
+    * @param left The coordinate of the left of clipping plane.
+    * @param right The coordinate of the right of clipping plane.
+    * @param bottom The coordinate of the bottom of clipping plane.
+    * @param top The coordinate of the top top clipping plane.
+    * @param near The distances to the nearer depth clipping plane. This value must be plus value.
+    * @param far The distances to the farther depth clipping plane. This value must be plus value.
+    * @return this
+    */
+    Matrix4.prototype.setFrustum = function(left, right, bottom, top, near, far) {
+    var e, rw, rh, rd;
+
+    if (left === right || top === bottom || near === far) {
+        throw 'null frustum';
+    }
+    if (near <= 0) {
+        throw 'near <= 0';
+    }
+    if (far <= 0) {
+        throw 'far <= 0';
+    }
+
+    rw = 1 / (right - left);
+    rh = 1 / (top - bottom);
+    rd = 1 / (far - near);
+
+    e = this.elements;
+
+    e[ 0] = 2 * near * rw;
+    e[ 1] = 0;
+    e[ 2] = 0;
+    e[ 3] = 0;
+
+    e[ 4] = 0;
+    e[ 5] = 2 * near * rh;
+    e[ 6] = 0;
+    e[ 7] = 0;
+
+    e[ 8] = (right + left) * rw;
+    e[ 9] = (top + bottom) * rh;
+    e[10] = -(far + near) * rd;
+    e[11] = -1;
+
+    e[12] = 0;
+    e[13] = 0;
+    e[14] = -2 * near * far * rd;
+    e[15] = 0;
+
+    return this;
+    };
+
+    /**
+    * Multiply the perspective projection matrix from the right.
+    * @param left The coordinate of the left of clipping plane.
+    * @param right The coordinate of the right of clipping plane.
+    * @param bottom The coordinate of the bottom of clipping plane.
+    * @param top The coordinate of the top top clipping plane.
+    * @param near The distances to the nearer depth clipping plane. This value must be plus value.
+    * @param far The distances to the farther depth clipping plane. This value must be plus value.
+    * @return this
+    */
+    Matrix4.prototype.frustum = function(left, right, bottom, top, near, far) {
+    return this.concat(new Matrix4().setFrustum(left, right, bottom, top, near, far));
+    };
+
+    /**
+    * Set the perspective projection matrix by fovy and aspect.
+    * @param fovy The angle between the upper and lower sides of the frustum.
+    * @param aspect The aspect ratio of the frustum. (width/height)
+    * @param near The distances to the nearer depth clipping plane. This value must be plus value.
+    * @param far The distances to the farther depth clipping plane. This value must be plus value.
+    * @return this
+    */
+    Matrix4.prototype.setPerspective = function(fovy, aspect, near, far) {
+    var e, rd, s, ct;
+
+    if (near === far || aspect === 0) {
+        throw 'null frustum';
+    }
+    if (near <= 0) {
+        throw 'near <= 0';
+    }
+    if (far <= 0) {
+        throw 'far <= 0';
+    }
+
+    fovy = Math.PI * fovy / 180 / 2;
+    s = Math.sin(fovy);
+    if (s === 0) {
+        throw 'null frustum';
+    }
+
+    rd = 1 / (far - near);
+    ct = Math.cos(fovy) / s;
+
+    e = this.elements;
+
+    e[0]  = ct / aspect;
+    e[1]  = 0;
+    e[2]  = 0;
+    e[3]  = 0;
+
+    e[4]  = 0;
+    e[5]  = ct;
+    e[6]  = 0;
+    e[7]  = 0;
+
+    e[8]  = 0;
+    e[9]  = 0;
+    e[10] = -(far + near) * rd;
+    e[11] = -1;
+
+    e[12] = 0;
+    e[13] = 0;
+    e[14] = -2 * near * far * rd;
+    e[15] = 0;
+
+    return this;
+    };
+
+    /**
+    * Multiply the perspective projection matrix from the right.
+    * @param fovy The angle between the upper and lower sides of the frustum.
+    * @param aspect The aspect ratio of the frustum. (width/height)
+    * @param near The distances to the nearer depth clipping plane. This value must be plus value.
+    * @param far The distances to the farther depth clipping plane. This value must be plus value.
+    * @return this
+    */
+    Matrix4.prototype.perspective = function(fovy, aspect, near, far) {
+    return this.concat(new Matrix4().setPerspective(fovy, aspect, near, far));
+    };
+
+    /**
+    * Set the matrix for scaling.
+    * @param x The scale factor along the X axis
+    * @param y The scale factor along the Y axis
+    * @param z The scale factor along the Z axis
+    * @return this
+    */
+    Matrix4.prototype.setScale = function(x, y, z) {
+    var e = this.elements;
+    e[0] = x;  e[4] = 0;  e[8]  = 0;  e[12] = 0;
+    e[1] = 0;  e[5] = y;  e[9]  = 0;  e[13] = 0;
+    e[2] = 0;  e[6] = 0;  e[10] = z;  e[14] = 0;
+    e[3] = 0;  e[7] = 0;  e[11] = 0;  e[15] = 1;
+    return this;
+    };
+
+    /**
+    * Multiply the matrix for scaling from the right.
+    * @param x The scale factor along the X axis
+    * @param y The scale factor along the Y axis
+    * @param z The scale factor along the Z axis
+    * @return this
+    */
+    Matrix4.prototype.scale = function(x, y, z) {
+    var e = this.elements;
+    e[0] *= x;  e[4] *= y;  e[8]  *= z;
+    e[1] *= x;  e[5] *= y;  e[9]  *= z;
+    e[2] *= x;  e[6] *= y;  e[10] *= z;
+    e[3] *= x;  e[7] *= y;  e[11] *= z;
+    return this;
+    };
+
+    /**
+    * Set the matrix for translation.
+    * @param x The X value of a translation.
+    * @param y The Y value of a translation.
+    * @param z The Z value of a translation.
+    * @return this
+    */
+    Matrix4.prototype.setTranslate = function(x, y, z) {
+    var e = this.elements;
+    e[0] = 1;  e[4] = 0;  e[8]  = 0;  e[12] = x;
+    e[1] = 0;  e[5] = 1;  e[9]  = 0;  e[13] = y;
+    e[2] = 0;  e[6] = 0;  e[10] = 1;  e[14] = z;
+    e[3] = 0;  e[7] = 0;  e[11] = 0;  e[15] = 1;
+    return this;
+    };
+
+    /**
+    * Multiply the matrix for translation from the right.
+    * @param x The X value of a translation.
+    * @param y The Y value of a translation.
+    * @param z The Z value of a translation.
+    * @return this
+    */
+    Matrix4.prototype.translate = function(x, y, z) {
+    var e = this.elements;
+    e[12] += e[0] * x + e[4] * y + e[8]  * z;
+    e[13] += e[1] * x + e[5] * y + e[9]  * z;
+    e[14] += e[2] * x + e[6] * y + e[10] * z;
+    e[15] += e[3] * x + e[7] * y + e[11] * z;
+    return this;
+    };
+
+    /**
+    * Set the matrix for rotation.
+    * The vector of rotation axis may not be normalized.
+    * @param angle The angle of rotation (degrees)
+    * @param x The X coordinate of vector of rotation axis.
+    * @param y The Y coordinate of vector of rotation axis.
+    * @param z The Z coordinate of vector of rotation axis.
+    * @return this
+    */
+    Matrix4.prototype.setRotate = function(angle, x, y, z) {
+    var e, s, c, len, rlen, nc, xy, yz, zx, xs, ys, zs;
+
+    angle = Math.PI * angle / 180;
+    e = this.elements;
+
+    s = Math.sin(angle);
+    c = Math.cos(angle);
+
+    if (0 !== x && 0 === y && 0 === z) {
+        // Rotation around X axis
+        if (x < 0) {
+        s = -s;
+        }
+        e[0] = 1;  e[4] = 0;  e[ 8] = 0;  e[12] = 0;
+        e[1] = 0;  e[5] = c;  e[ 9] =-s;  e[13] = 0;
+        e[2] = 0;  e[6] = s;  e[10] = c;  e[14] = 0;
+        e[3] = 0;  e[7] = 0;  e[11] = 0;  e[15] = 1;
+    } else if (0 === x && 0 !== y && 0 === z) {
+        // Rotation around Y axis
+        if (y < 0) {
+        s = -s;
+        }
+        e[0] = c;  e[4] = 0;  e[ 8] = s;  e[12] = 0;
+        e[1] = 0;  e[5] = 1;  e[ 9] = 0;  e[13] = 0;
+        e[2] =-s;  e[6] = 0;  e[10] = c;  e[14] = 0;
+        e[3] = 0;  e[7] = 0;  e[11] = 0;  e[15] = 1;
+    } else if (0 === x && 0 === y && 0 !== z) {
+        // Rotation around Z axis
+        if (z < 0) {
+        s = -s;
+        }
+        e[0] = c;  e[4] =-s;  e[ 8] = 0;  e[12] = 0;
+        e[1] = s;  e[5] = c;  e[ 9] = 0;  e[13] = 0;
+        e[2] = 0;  e[6] = 0;  e[10] = 1;  e[14] = 0;
+        e[3] = 0;  e[7] = 0;  e[11] = 0;  e[15] = 1;
+    } else {
+        // Rotation around another axis
+        len = Math.sqrt(x*x + y*y + z*z);
+        if (len !== 1) {
+        rlen = 1 / len;
+        x *= rlen;
+        y *= rlen;
+        z *= rlen;
+        }
+        nc = 1 - c;
+        xy = x * y;
+        yz = y * z;
+        zx = z * x;
+        xs = x * s;
+        ys = y * s;
+        zs = z * s;
+
+        e[ 0] = x*x*nc +  c;
+        e[ 1] = xy *nc + zs;
+        e[ 2] = zx *nc - ys;
+        e[ 3] = 0;
+
+        e[ 4] = xy *nc - zs;
+        e[ 5] = y*y*nc +  c;
+        e[ 6] = yz *nc + xs;
+        e[ 7] = 0;
+
+        e[ 8] = zx *nc + ys;
+        e[ 9] = yz *nc - xs;
+        e[10] = z*z*nc +  c;
+        e[11] = 0;
+
+        e[12] = 0;
+        e[13] = 0;
+        e[14] = 0;
+        e[15] = 1;
+    }
+
+    return this;
+    };
+
+    /**
+    * Multiply the matrix for rotation from the right.
+    * The vector of rotation axis may not be normalized.
+    * @param angle The angle of rotation (degrees)
+    * @param x The X coordinate of vector of rotation axis.
+    * @param y The Y coordinate of vector of rotation axis.
+    * @param z The Z coordinate of vector of rotation axis.
+    * @return this
+    */
+    Matrix4.prototype.rotate = function(angle, x, y, z) {
+    return this.concat(new Matrix4().setRotate(angle, x, y, z));
+    };
+
+    /**
+    * Set the viewing matrix.
+    * @param eyeX, eyeY, eyeZ The position of the eye point.
+    * @param centerX, centerY, centerZ The position of the reference point.
+    * @param upX, upY, upZ The direction of the up vector.
+    * @return this
+    */
+    Matrix4.prototype.setLookAt = function(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ) {
+    var e, fx, fy, fz, rlf, sx, sy, sz, rls, ux, uy, uz;
+
+    fx = centerX - eyeX;
+    fy = centerY - eyeY;
+    fz = centerZ - eyeZ;
+
+    // Normalize f.
+    rlf = 1 / Math.sqrt(fx*fx + fy*fy + fz*fz);
+    fx *= rlf;
+    fy *= rlf;
+    fz *= rlf;
+
+    // Calculate cross product of f and up.
+    sx = fy * upZ - fz * upY;
+    sy = fz * upX - fx * upZ;
+    sz = fx * upY - fy * upX;
+
+    // Normalize s.
+    rls = 1 / Math.sqrt(sx*sx + sy*sy + sz*sz);
+    sx *= rls;
+    sy *= rls;
+    sz *= rls;
+
+    // Calculate cross product of s and f.
+    ux = sy * fz - sz * fy;
+    uy = sz * fx - sx * fz;
+    uz = sx * fy - sy * fx;
+
+    // Set to this.
+    e = this.elements;
+    e[0] = sx;
+    e[1] = ux;
+    e[2] = -fx;
+    e[3] = 0;
+
+    e[4] = sy;
+    e[5] = uy;
+    e[6] = -fy;
+    e[7] = 0;
+
+    e[8] = sz;
+    e[9] = uz;
+    e[10] = -fz;
+    e[11] = 0;
+
+    e[12] = 0;
+    e[13] = 0;
+    e[14] = 0;
+    e[15] = 1;
+
+    // Translate.
+    return this.translate(-eyeX, -eyeY, -eyeZ);
+    };
+
+    /**
+    * Multiply the viewing matrix from the right.
+    * @param eyeX, eyeY, eyeZ The position of the eye point.
+    * @param centerX, centerY, centerZ The position of the reference point.
+    * @param upX, upY, upZ The direction of the up vector.
+    * @return this
+    */
+    Matrix4.prototype.lookAt = function(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ) {
+    return this.concat(new Matrix4().setLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ));
+    };
+
+    /**
+    * Multiply the matrix for project vertex to plane from the right.
+    * @param plane The array[A, B, C, D] of the equation of plane "Ax + By + Cz + D = 0".
+    * @param light The array which stored coordinates of the light. if light[3]=0, treated as parallel light.
+    * @return this
+    */
+    Matrix4.prototype.dropShadow = function(plane, light) {
+    var mat = new Matrix4();
+    var e = mat.elements;
+
+    var dot = plane[0] * light[0] + plane[1] * light[1] + plane[2] * light[2] + plane[3] * light[3];
+
+    e[ 0] = dot - light[0] * plane[0];
+    e[ 1] =     - light[1] * plane[0];
+    e[ 2] =     - light[2] * plane[0];
+    e[ 3] =     - light[3] * plane[0];
+
+    e[ 4] =     - light[0] * plane[1];
+    e[ 5] = dot - light[1] * plane[1];
+    e[ 6] =     - light[2] * plane[1];
+    e[ 7] =     - light[3] * plane[1];
+
+    e[ 8] =     - light[0] * plane[2];
+    e[ 9] =     - light[1] * plane[2];
+    e[10] = dot - light[2] * plane[2];
+    e[11] =     - light[3] * plane[2];
+
+    e[12] =     - light[0] * plane[3];
+    e[13] =     - light[1] * plane[3];
+    e[14] =     - light[2] * plane[3];
+    e[15] = dot - light[3] * plane[3];
+
+    return this.concat(mat);
+    }
+
+    /**
+    * Multiply the matrix for project vertex to plane from the right.(Projected by parallel light.)
+    * @param normX, normY, normZ The normal vector of the plane.(Not necessary to be normalized.)
+    * @param planeX, planeY, planeZ The coordinate of arbitrary points on a plane.
+    * @param lightX, lightY, lightZ The vector of the direction of light.(Not necessary to be normalized.)
+    * @return this
+    */
+    Matrix4.prototype.dropShadowDirectionally = function(normX, normY, normZ, planeX, planeY, planeZ, lightX, lightY, lightZ) {
+    var a = planeX * normX + planeY * normY + planeZ * normZ;
+    return this.dropShadow([normX, normY, normZ, -a], [lightX, lightY, lightZ, 0]);
+    };
+
+    /**
+    * Constructor of Vector3
+    * If opt_src is specified, new vector is initialized by opt_src.
+    * @param opt_src source vector(option)
+    */
+    var Vector3 = function(opt_src) {
+    var v = new Float32Array(3);
+    if (opt_src && typeof opt_src === 'object') {
+        v[0] = opt_src[0]; v[1] = opt_src[1]; v[2] = opt_src[2];
+    } 
+    this.elements = v;
+    }
+
+    /**
+    * Normalize.
+    * @return this
+    */
+    Vector3.prototype.normalize = function() {
+    var v = this.elements;
+    var c = v[0], d = v[1], e = v[2], g = Math.sqrt(c*c+d*d+e*e);
+    if(g){
+        if(g == 1)
+            return this;
+    } else {
+        v[0] = 0; v[1] = 0; v[2] = 0;
+        return this;
+    }
+    g = 1/g;
+    v[0] = c*g; v[1] = d*g; v[2] = e*g;
+    return this;
+    };
+
+    /**
+    * Constructor of Vector4
+    * If opt_src is specified, new vector is initialized by opt_src.
+    * @param opt_src source vector(option)
+    */
+    var Vector4 = function(opt_src) {
+    var v = new Float32Array(4);
+    if (opt_src && typeof opt_src === 'object') {
+        v[0] = opt_src[0]; v[1] = opt_src[1]; v[2] = opt_src[2]; v[3] = opt_src[3];
+    } 
+    this.elements = v;
+    }
+    </script>
     <style type="text/css">
         * {
             margin: 0;
-            padding: 0;
-            font-family: monospace;
-            font-size: 16px;
-            line-height: 1.5;
-        }
-        li {
-            text-align: center;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div style="margin-top: 10px;">
-            <h3 style="text-align: center; display: none;">小浣熊水浒卡</h3>
-            <div style="display: none;">zy_cwind@weixin</div>
-            <ul style="list-style-type: none;">
-                <li><img src="images/1.jpg" /></li>
-                <li><img src="images/2.jpg" /></li>
-                <li><img src="images/3.jpg" /></li>
-                <li><img src="images/4.jpg" /></li>
-                <li><img src="images/5.jpg" /></li>
-                <li><img src="images/6.jpg" /></li>
-                <li><img src="images/7.jpg" /></li>
-                <li><img src="images/8.jpg" /></li>
-                <li><img src="images/9.jpg" /></li>
-                <li><img src="images/10.jpg" /></li>
-                <li><img src="images/11.jpg" /></li>
-                <li><img src="images/12.jpg" /></li>
-                <li><img src="images/13.jpg" /></li>
-                <li><img src="images/14.jpg" /></li>
-                <li><img src="images/15.jpg" /></li>
-                <li><img src="images/16.jpg" /></li>
-                <li><img src="images/17.jpg" /></li>
-                <li><img src="images/18.jpg" /></li>
-                <li><img src="images/19.jpg" /></li>
-                <li><img src="images/20.jpg" /></li>
-                <li><img src="images/21.jpg" /></li>
-                <li><img src="images/22.jpg" /></li>
-                <li><img src="images/23.jpg" /></li>
-                <li><img src="images/24.jpg" /></li>
-                <li><img src="images/25.jpg" /></li>
-                <li><img src="images/26.jpg" /></li>
-                <li><img src="images/27.jpg" /></li>
-                <li><img src="images/28.jpg" /></li>
-                <li><img src="images/29.jpg" /></li>
-                <li><img src="images/30.jpg" /></li>
-                <li><img src="images/31.jpg" /></li>
-                <li><img src="images/32.jpg" /></li>
-                <li><img src="images/33.jpg" /></li>
-                <li><img src="images/34.jpg" /></li>
-                <li><img src="images/35.jpg" /></li>
-                <li><img src="images/36.jpg" /></li>
-                <li><img src="images/37.jpg" /></li>
-                <li><img src="images/38.jpg" /></li>
-                <li><img src="images/39.jpg" /></li>
-                <li><img src="images/40.jpg" /></li>
-                <li><img src="images/41.jpg" /></li>
-                <li><img src="images/42.jpg" /></li>
-                <li><img src="images/43.jpg" /></li>
-                <li><img src="images/44.jpg" /></li>
-                <li><img src="images/45.jpg" /></li>
-                <li><img src="images/46.jpg" /></li>
-                <li><img src="images/47.jpg" /></li>
-                <li><img src="images/48.jpg" /></li>
-                <li><img src="images/49.jpg" /></li>
-                <li><img src="images/50.jpg" /></li>
-                <li><img src="images/51.jpg" /></li>
-                <li><img src="images/52.jpg" /></li>
-                <li><img src="images/53.jpg" /></li>
-                <li><img src="images/54.jpg" /></li>
-                <li><img src="images/55.jpg" /></li>
-                <li><img src="images/56.jpg" /></li>
-                <li><img src="images/57.jpg" /></li>
-                <li><img src="images/58.jpg" /></li>
-                <li><img src="images/59.jpg" /></li>
-                <li><img src="images/60.jpg" /></li>
-                <li><img src="images/61.jpg" /></li>
-                <li><img src="images/62.jpg" /></li>
-                <li><img src="images/63.jpg" /></li>
-                <li><img src="images/64.jpg" /></li>
-                <li><img src="images/65.jpg" /></li>
-                <li><img src="images/66.jpg" /></li>
-                <li><img src="images/67.jpg" /></li>
-                <li><img src="images/68.jpg" /></li>
-                <li><img src="images/69.jpg" /></li>
-                <li><img src="images/70.jpg" /></li>
-                <li><img src="images/71.jpg" /></li>
-                <li><img src="images/72.jpg" /></li>
-                <li><img src="images/73.jpg" /></li>
-                <li><img src="images/74.jpg" /></li>
-                <li><img src="images/75.jpg" /></li>
-                <li><img src="images/76.jpg" /></li>
-                <li><img src="images/77.jpg" /></li>
-                <li><img src="images/78.jpg" /></li>
-                <li><img src="images/79.jpg" /></li>
-                <li><img src="images/80.jpg" /></li>
-                <li><img src="images/81.jpg" /></li>
-                <li><img src="images/82.jpg" /></li>
-                <li><img src="images/83.jpg" /></li>
-                <li><img src="images/84.jpg" /></li>
-                <li><img src="images/85.jpg" /></li>
-                <li><img src="images/86.jpg" /></li>
-                <li><img src="images/87.jpg" /></li>
-                <li><img src="images/88.jpg" /></li>
-                <li><img src="images/89.jpg" /></li>
-                <li><img src="images/90.jpg" /></li>
-                <li><img src="images/91.jpg" /></li>
-                <li><img src="images/92.jpg" /></li>
-                <li><img src="images/93.jpg" /></li>
-                <li><img src="images/94.jpg" /></li>
-                <li><img src="images/95.jpg" /></li>
-                <li><img src="images/96.jpg" /></li>
-                <li><img src="images/97.jpg" /></li>
-                <li><img src="images/98.jpg" /></li>
-                <li><img src="images/99.jpg" /></li>
-                <li><img src="images/100.jpg" /></li>
-                <li><img src="images/101.jpg" /></li>
-                <li><img src="images/102.jpg" /></li>
-                <li><img src="images/103.jpg" /></li>
-                <li><img src="images/104.jpg" /></li>
-                <li><img src="images/105.jpg" /></li>
-                <li><img src="images/106.jpg" /></li>
-                <li><img src="images/107.jpg" /></li>
-                <li><img src="images/108.jpg" /></li>
-            </ul>
-        </div>
+    <div style="text-align: center;">
+        <canvas id="canvas" width="414" height="736"></canvas>
     </div>
+    <script id="vertex-shader" type="x-shader/x-vertex">
+        attribute vec3 aPos;
+        attribute vec3 aNormal;
+        uniform mat4 model;
+        uniform mat4 view;
+        uniform mat4 projection;
+
+        varying vec3 FragPos;
+        varying vec3 Normal;
+
+        #ifndef inverse
+            mat4 inverse(mat4 m) {
+                mat4 r;
+                float d;
+                r[0][0] = m[1][1] * m[2][2] * m[3][3] - m[1][1] * m[2][3] * m[3][2] - m[2][1] * m[1][2] * m[3][3] + m[2][1] * m[1][3] * m[3][2] + m[3][1] * m[1][2] * m[2][3] - m[3][1] * m[1][3] * m[2][2];
+                r[1][0] =-m[1][0] * m[2][2] * m[3][3] + m[1][0] * m[2][3] * m[3][2] + m[2][0] * m[1][2] * m[3][3] - m[2][0] * m[1][3] * m[3][2] - m[3][0] * m[1][2] * m[2][3] + m[3][0] * m[1][3] * m[2][2];
+                r[2][0] = m[1][0] * m[2][1] * m[3][3] - m[1][0] * m[2][3] * m[3][1] - m[2][0] * m[1][1] * m[3][3] + m[2][0] * m[1][3] * m[3][1] + m[3][0] * m[1][1] * m[2][3] - m[3][0] * m[1][3] * m[2][1];
+                r[3][0] =-m[1][0] * m[2][1] * m[3][2] + m[1][0] * m[2][2] * m[3][1] + m[2][0] * m[1][1] * m[3][2] - m[2][0] * m[1][2] * m[3][1] - m[3][0] * m[1][1] * m[2][2] + m[3][0] * m[1][2] * m[2][1];
+                r[0][1] =-m[0][1] * m[2][2] * m[3][3] + m[0][1] * m[2][3] * m[3][2] + m[2][1] * m[0][2] * m[3][3] - m[2][1] * m[0][3] * m[3][2] - m[3][1] * m[0][2] * m[2][3] + m[3][1] * m[0][3] * m[2][2];
+                r[1][1] = m[0][0] * m[2][2] * m[3][3] - m[0][0] * m[2][3] * m[3][2] - m[2][0] * m[0][2] * m[3][3] + m[2][0] * m[0][3] * m[3][2] + m[3][0] * m[0][2] * m[2][3] - m[3][0] * m[0][3] * m[2][2];
+                r[2][1] =-m[0][0] * m[2][1] * m[3][3] + m[0][0] * m[2][3] * m[3][1] + m[2][0] * m[0][1] * m[3][3] - m[2][0] * m[0][3] * m[3][1] - m[3][0] * m[0][1] * m[2][3] + m[3][0] * m[0][3] * m[2][1];
+                r[3][1] = m[0][0] * m[2][1] * m[3][2] - m[0][0] * m[2][2] * m[3][1] - m[2][0] * m[0][1] * m[3][2] + m[2][0] * m[0][2] * m[3][1] + m[3][0] * m[0][1] * m[2][2] - m[3][0] * m[0][2] * m[2][1];
+                r[0][2] = m[0][1] * m[1][2] * m[3][3] - m[0][1] * m[1][3] * m[3][2] - m[1][1] * m[0][2] * m[3][3] + m[1][1] * m[0][3] * m[3][2] + m[3][1] * m[0][2] * m[1][3] - m[3][1] * m[0][3] * m[1][2];
+                r[1][2] =-m[0][0] * m[1][2] * m[3][3] + m[0][0] * m[1][3] * m[3][2] + m[1][0] * m[0][2] * m[3][3] - m[1][0] * m[0][3] * m[3][2] - m[3][0] * m[0][2] * m[1][3] + m[3][0] * m[0][3] * m[1][2];
+                r[2][2] = m[0][0] * m[1][1] * m[3][3] - m[0][0] * m[1][3] * m[3][1] - m[1][0] * m[0][1] * m[3][3] + m[1][0] * m[0][3] * m[3][1] + m[3][0] * m[0][1] * m[1][3] - m[3][0] * m[0][3] * m[1][1];
+                r[3][2] =-m[0][0] * m[1][1] * m[3][2] + m[0][0] * m[1][2] * m[3][1] + m[1][0] * m[0][1] * m[3][2] - m[1][0] * m[0][2] * m[3][1] - m[3][0] * m[0][1] * m[1][2] + m[3][0] * m[0][2] * m[1][1];
+                r[0][3] =-m[0][1] * m[1][2] * m[2][3] + m[0][1] * m[1][3] * m[2][2] + m[1][1] * m[0][2] * m[2][3] - m[1][1] * m[0][3] * m[2][2] - m[2][1] * m[0][2] * m[1][3] + m[2][1] * m[0][3] * m[1][2];
+                r[1][3] = m[0][0] * m[1][2] * m[2][3] - m[0][0] * m[1][3] * m[2][2] - m[1][0] * m[0][2] * m[2][3] + m[1][0] * m[0][3] * m[2][2] + m[2][0] * m[0][2] * m[1][3] - m[2][0] * m[0][3] * m[1][2];
+                r[2][3] =-m[0][0] * m[1][1] * m[2][3] + m[0][0] * m[1][3] * m[2][1] + m[1][0] * m[0][1] * m[2][3] - m[1][0] * m[0][3] * m[2][1] - m[2][0] * m[0][1] * m[1][3] + m[2][0] * m[0][3] * m[1][1];
+                r[3][3] = m[0][0] * m[1][1] * m[2][2] - m[0][0] * m[1][2] * m[2][1] - m[1][0] * m[0][1] * m[2][2] + m[1][0] * m[0][2] * m[2][1] + m[2][0] * m[0][1] * m[1][2] - m[2][0] * m[0][2] * m[1][1];
+                d = m[0][0] * r[0][0] + m[0][1] * r[1][0] + m[0][2] * r[2][0] + m[0][3] * r[3][0];
+                if (d == 0.0) {
+                    return r;
+                }
+                r /= d;
+                return r;
+            }
+        #endif
+
+        #ifndef transpose
+            mat4 transpose(mat4 m) {
+                mat4 r;
+                r[0][0] = m[0][0]; r[0][1] = m[1][0]; r[0][2] = m[2][0]; r[0][3] = m[3][0];
+                r[1][0] = m[0][1]; r[1][1] = m[1][1]; r[1][2] = m[2][1]; r[1][3] = m[3][1];
+                r[2][0] = m[0][2]; r[2][1] = m[1][2]; r[2][2] = m[2][2]; r[2][3] = m[3][2];
+                r[3][0] = m[0][3]; r[3][1] = m[1][3]; r[3][2] = m[2][3]; r[3][3] = m[3][3];
+                return r;
+            }
+        #endif
+
+        void main() {
+            Normal = mat3(transpose(inverse(model))) * aNormal;
+
+            FragPos = vec3(model * vec4(aPos, 1.0));
+            gl_Position = projection * view * vec4(FragPos, 1.0);
+        }
+    </script>
+    <script id="fragment-shader" type="x-shader/x-fragment">
+        #ifdef GL_ES
+            precision mediump float;
+        #endif
+
+        struct Light {
+            vec3 position;
+            vec3 ambient;
+            vec3 diffuse;
+            vec3 specular;
+        };
+
+        uniform vec3 viewPos;
+        varying vec3 FragPos;
+
+        varying vec3 Normal;
+
+        uniform Light light;
+
+        void main() {
+            vec3 ambient = light.ambient * vec3(0.5, 0, 1.0);
+            
+            vec3 norm = normalize(Normal);
+            vec3 lightDir = normalize(light.position - FragPos);
+            float diff = max(dot(norm, lightDir), 0.0);
+            vec3 diffuse = light.diffuse * diff * vec3(0.5, 0, 1.0);
+            
+            vec3 viewDir = normalize(viewPos - FragPos);
+            vec3 reflectDir = reflect(-lightDir, norm);
+            float spec = pow(max(dot(viewDir, reflectDir), 0.0), 64.0);
+            vec3 specular = light.specular * spec * vec3(1.0, 1.0, 1.0);  
+            
+            vec3 result = ambient + diffuse + specular;
+            gl_FragColor = vec4(result, 1.0);
+        }
+    </script>
+    <script type="text/javascript">
+
+        var canvas = document.getElementById('canvas');
+        var gl = canvas.getContext('webgl');
+        gl.viewport(0, 0, canvas.width, canvas.height);
+
+        /**
+         * 编译链接程序
+         *
+         *
+         */
+        var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+        gl.shaderSource(vertexShader, document.getElementById('vertex-shader').text);
+        gl.compileShader(vertexShader);
+        if(!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
+            console.log(gl.getShaderInfoLog(vertexShader));
+        }
+        var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+        gl.shaderSource(fragmentShader, document.getElementById('fragment-shader').text);
+        gl.compileShader(fragmentShader);
+        if(!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
+            console.log(gl.getShaderInfoLog(fragmentShader));
+        }
+        var program = gl.createProgram();
+        gl.attachShader(program, vertexShader);
+        gl.attachShader(program, fragmentShader);
+        gl.linkProgram(program);
+        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+            gl.getProgramInfoLog(program);
+        }
+        gl.deleteShader(vertexShader);
+        gl.deleteShader(fragmentShader);
+        gl.useProgram(program);
+
+        function createMaze(w, h) {
+            var map = new Array(w * h);
+            for (var i = 0; i < map.length; i++) {
+                map[i] = 0;
+            }
+            var walkList = [];
+            var i = 0;
+            do {
+                if ((i - w >= 0 && !(map[i - w] & 0x10)) || (i + w < map.length && !(map[i + w] & 0x10)) || (i % w && !(map[i - 1] & 0x10)) || ((i + 1) % w && !(map[i + 1] & 0x10))) {
+                    var j = undefined;
+                    var position;
+                    do {
+                        position = parseInt(Math.random() * 4);
+                        switch (position) {
+                        case 0:
+                            if (i - w >= 0 && !(map[i - w] & 0x10)) j = i - w;
+                            break;
+                        case 1:
+                            if (i + w < map.length && !(map[i + w] & 0x10)) j = i + w;
+                            break;
+                        case 2:
+                            if (i % w && !(map[i - 1] & 0x10)) j = i - 1;
+                            break;
+                        case 3:
+                            if ((i + 1) % w && !(map[i + 1] & 0x10)) j = i + 1;
+                            break;
+                        }
+                    } while (j === undefined);
+                    /**
+                     * 随机选择一个未访问的相邻迷宫单元
+                     *
+                     *
+                     */
+                    walkList.push(i);
+                    map[i] |= 0x10 | (1 << position);
+                    map[j] |= 0x10 | (1 << parseInt(position / 2) * 2 + (position % 2 ? 0 : 1));
+                    i = j;
+                } else if (walkList.length) {
+                    i = walkList.splice(parseInt(Math.random() * walkList.length), 1)[0];
+                } else {
+                    break;
+                }
+            } while (true);
+            {
+                var _map = [];
+                for (var i = 0; i < h; i++) {
+                    var row = [];
+                    for (var j = 0; j < w; j++) {
+                        row.push(map[i * w + j] & ~0x10);
+                    }
+                    _map.push(row);
+                }
+                _map[0][0] |= 0x04;
+                _map[h - 1][w - 1] |= 0x08;
+                return _map;
+            }
+        }
+
+        function createCube(x1, y1, x2, y2) {
+            var w = 0.1;
+            var h = 0.5;
+            var a = Math.min(x1, x2) - w;
+            var b = Math.max(x1, x2) + w;
+            var c = Math.min(y1, y2) - w;
+            var d = Math.max(y1, y2) + w;
+            return [
+                a, c, -h, 0, 0,-1, 0, 0, b, c, -h, 0, 0,-1, 0, 0, b, d, -h, 0, 0,-1, 0, 0,
+                b, d, -h, 0, 0,-1, 0, 0, a, d, -h, 0, 0,-1, 0, 0, a, c, -h, 0, 0,-1, 0, 0,
+                a, c,  h, 0, 0, 1, 0, 0, b, c,  h, 0, 0, 1, 0, 0, b, d,  h, 0, 0, 1, 0, 0,
+                b, d,  h, 0, 0, 1, 0, 0, a, d,  h, 0, 0, 1, 0, 0, a, c,  h, 0, 0, 1, 0, 0,
+                a, d,  h,-1, 0, 0, 0, 0, a, d, -h,-1, 0, 0, 0, 0, a, c, -h,-1, 0, 0, 0, 0, 
+                a, c, -h,-1, 0, 0, 0, 0, a, c,  h,-1, 0, 0, 0, 0, a, d,  h,-1, 0, 0, 0, 0, 
+                b, d,  h, 1, 0, 0, 0, 0, b, d, -h, 1, 0, 0, 0, 0, b, c, -h, 1, 0, 0, 0, 0,
+                b, c, -h, 1, 0, 0, 0, 0, b, c,  h, 1, 0, 0, 0, 0, b, d,  h, 1, 0, 0, 0, 0,
+                a, c, -h, 0,-1, 0, 0, 0, b, c, -h, 0,-1, 0, 0, 0, b, c,  h, 0,-1, 0, 0, 0,
+                b, c,  h, 0,-1, 0, 0, 0, a, c,  h, 0,-1, 0, 0, 0, a, c, -h, 0,-1, 0, 0, 0,
+                a, d, -h, 0, 1, 0, 0, 0, b, d, -h, 0, 1, 0, 0, 0, b, d,  h, 0, 1, 0, 0, 0, 
+                b, d,  h, 0, 1, 0, 0, 0, a, d,  h, 0, 1, 0, 0, 0, a, d, -h, 0, 1, 0, 0, 0 
+            ]
+        }
+
+        var map = createMaze(25, 12);
+        var _vertices = [];
+        for (var i = 0; i < map.length; i++) {
+            for (var j = 0; j < map[i].length; j++) {
+                if (!(map[i][j] & 0x01)) _vertices = _vertices.concat(createCube(-0.5 + j,  0.5 - i,  0.5 + j,  0.5 - i));
+                if (!(map[i][j] & 0x02)) _vertices = _vertices.concat(createCube(-0.5 + j, -0.5 - i,  0.5 + j, -0.5 - i));
+                if (!(map[i][j] & 0x04)) _vertices = _vertices.concat(createCube(-0.5 + j,  0.5 - i, -0.5 + j, -0.5 - i));
+                if (!(map[i][j] & 0x08)) _vertices = _vertices.concat(createCube( 0.5 + j,  0.5 - i,  0.5 + j, -0.5 - i));
+            }
+        }
+
+        var vertices = new Float32Array(_vertices);
+        var vbo = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+        {
+            var attribLocation = gl.getAttribLocation(program, 'aPos');
+            gl.vertexAttribPointer(attribLocation, 3, gl.FLOAT, false, vertices.BYTES_PER_ELEMENT * 8, 0);
+            gl.enableVertexAttribArray(attribLocation);
+        }
+        {
+            var attribLocation = gl.getAttribLocation(program, 'aNormal');
+            gl.vertexAttribPointer(attribLocation, 3, gl.FLOAT, false, vertices.BYTES_PER_ELEMENT * 8, vertices.BYTES_PER_ELEMENT * 3);
+            gl.enableVertexAttribArray(attribLocation);
+        }
+        {
+            var attribLocation = gl.getAttribLocation(program, 'aTexCoords');
+            gl.vertexAttribPointer(attribLocation, 2, gl.FLOAT, false, vertices.BYTES_PER_ELEMENT * 8, vertices.BYTES_PER_ELEMENT * 6);
+            gl.enableVertexAttribArray(attribLocation);
+        }
+        // gl.activeTexture(gl.TEXTURE0);
+        // {
+        //     var texture = gl.createTexture();
+        //     gl.bindTexture(gl.TEXTURE_2D, texture);
+        //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+        //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+        //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        //     var img = document.getElementsByTagName('img')[0];
+        //     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+        //     gl.generateMipmap(gl.TEXTURE_2D);
+        //     var uniformLocation = gl.getUniformLocation(program, "texture1");
+        //     gl.uniform1i(uniformLocation, 0);
+        // }
+        {
+            var uniformLocation = gl.getUniformLocation(program, "light.position");
+            gl.uniform3fv(uniformLocation, new Float32Array([11.5, 5, 22.5]));
+        }
+        {
+            var uniformLocation = gl.getUniformLocation(program, "light.ambient");
+            gl.uniform3fv(uniformLocation, new Float32Array([0.2, 0.2, 0.2]));
+        }
+        {
+            var uniformLocation = gl.getUniformLocation(program, "light.diffuse");
+            gl.uniform3fv(uniformLocation, new Float32Array([0.5, 0.5, 0.5]));
+        }
+        {
+            var uniformLocation = gl.getUniformLocation(program, "light.specular");
+            gl.uniform3fv(uniformLocation, new Float32Array([1.0, 1.0, 1.0]));
+        }
+
+        gl.enable(gl.DEPTH_TEST);
+        {
+            var uniformLocation = gl.getUniformLocation(program, "projection");
+            projection = new Matrix4();
+            projection.setPerspective(45.0, canvas.width / canvas.height, 0.1, 100.0);
+            gl.uniformMatrix4fv(uniformLocation, false, projection.elements);
+        }
+        /**
+         * 向量叉乘
+         *
+         *
+         */
+        Vector3.prototype.cross = function (other) {
+            var e = this.elements;
+            var a = new Float32Array(this.elements);
+            var b = other.elements;
+            e[0] = a[1] * b[2] - a[2] * b[1];
+            e[1] = a[2] * b[0] - a[0] * b[2];
+            e[2] = a[0] * b[1] - a[1] * b[0];
+            return this;
+        };
+        var Position = new Vector3([0, 0, 17.5]);
+        var Front;
+        var Right;
+        var Up;
+
+        var Yaw = -90; // 偏航角
+        var Pitch = 0; // 俯仰角
+        var MouseSensitivity = 0.1;
+        var WorldUp = new Vector3([0.0, 1.0, 0.0]); // 摄像机的滚转角不变
+
+        function updateCameraVectors() {
+            Front = new Vector3([Math.cos(Math.PI * Yaw / 180) * Math.cos(Math.PI * Pitch / 180), Math.sin(Math.PI * Pitch / 180), Math.sin(Math.PI * Yaw / 180) * Math.cos(Math.PI * Pitch / 180)]).normalize();
+            Right = new Vector3(Front.elements).cross(WorldUp).normalize();
+            Up = new Vector3(Right.elements).cross(Front).normalize();
+        }
+
+        updateCameraVectors();
+
+        /**
+         * 画图
+         *
+         *
+         */
+        var draw = function () {
+            gl.clearColor(0, 0, 0, 1);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            {
+                var uniformLocation = gl.getUniformLocation(program, "view");
+                view = new Matrix4();
+                view.setLookAt(Position.elements[0], Position.elements[1], Position.elements[2], Position.elements[0] + Front.elements[0], Position.elements[1] + Front.elements[1], Position.elements[2] + Front.elements[2], Up.elements[0], Up.elements[1], Up.elements[2]);
+                gl.uniformMatrix4fv(uniformLocation, false, view.elements);
+            }
+            {
+                var uniformLocation = gl.getUniformLocation(program, "viewPos");
+                gl.uniform3fv(uniformLocation, new Float32Array(Position.elements));
+            }
+            {
+                var uniformLocation = gl.getUniformLocation(program, "model");
+                model = new Matrix4();
+                model.setScale(0.5, 0.5, 1).rotate(90, 0, 0, 1).translate(-12, 5.5, 0);
+                gl.uniformMatrix4fv(uniformLocation, false, model.elements);
+            }
+            gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 8);
+            requestAnimationFrame(draw);
+        }
+        draw();
+
+        var E;
+        canvas.ontouchmove = canvas.onmousemove = function (e) {
+            e.preventDefault();
+            e.offsetX = e.offsetX || e.touches[0].clientX;
+            e.offsetY = e.offsetY || e.touches[0].clientY;
+            if (E) {
+                Yaw += (e.offsetX - E.offsetX) * MouseSensitivity;
+                Pitch += (E.offsetY - e.offsetY) * MouseSensitivity;
+                if (Pitch > 89.0) {
+                    Pitch = 89.0;
+                } else if (Pitch < -89.0) {
+                    Pitch = -89.0;
+                }
+                updateCameraVectors();
+            }
+            E = e;
+        };
+        canvas.ontouchend = function (e) {
+            E = 0;
+        }
+
+        document.body.onkeypress = function (e) {
+            /**
+             * velocity 应该和运动速度有关
+             *
+             *
+             */
+            var velocity = 2.5 / 60;
+            if (e.code == 'KeyA') {
+                Position.elements[0] -= Right.elements[0] * velocity;
+                Position.elements[1] -= Right.elements[1] * velocity;
+                Position.elements[2] -= Right.elements[2] * velocity;
+            } else if (e.code == 'KeyS') {
+                Position.elements[0] -= Front.elements[0] * velocity;
+                Position.elements[1] -= Front.elements[1] * velocity;
+                Position.elements[2] -= Front.elements[2] * velocity;
+            } else if (e.code == 'KeyD') {
+                Position.elements[0] += Right.elements[0] * velocity;
+                Position.elements[1] += Right.elements[1] * velocity;
+                Position.elements[2] += Right.elements[2] * velocity;
+            } else if (e.code == 'KeyW') {
+                Position.elements[0] += Front.elements[0] * velocity;
+                Position.elements[1] += Front.elements[1] * velocity;
+                Position.elements[2] += Front.elements[2] * velocity;
+            }
+        }
+    </script>
 </body>
 </html>
