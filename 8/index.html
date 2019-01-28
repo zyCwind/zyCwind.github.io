@@ -1086,7 +1086,7 @@
             {
                 var uniformLocation = gl.getUniformLocation(program, "model");
                 model = new Matrix4();
-                model.setScale(0.5, 0.5, 1).rotate(90, 0, 0, 1).translate(-12, 5.5, 0);
+                model.setRotate(new Date().valueOf() / 100, 0, 1, 0).scale(0.5, 0.5, 1).rotate(90, 0, 0, 1).translate(-12, 5.5, 0);
                 gl.uniformMatrix4fv(uniformLocation, false, model.elements);
             }
             gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 8);
