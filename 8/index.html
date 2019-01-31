@@ -144,6 +144,7 @@
         var canvas = document.getElementById('canvas');
         var gl = canvas.getContext('webgl');
         gl.viewport(0, 0, canvas.width, canvas.height);
+        gl.enable(gl.DEPTH_TEST);
 
         var mazeVerticesSize = 216 * (CONFIG.w * CONFIG.h * 2 + 2) * Float32Array.BYTES_PER_ELEMENT;
 
@@ -189,8 +190,6 @@
             }
             gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, new Uint16Array(indices));
         }
-
-        window.onload = loadData;
 
         /**
          * 着色器程序
@@ -264,6 +263,7 @@
         Sprite.prototype.destory = function () {
         };
 
+        var reCreateScene;
         /**
          * box2D
          * 
@@ -385,7 +385,7 @@
                     a, d, -cubeH / 2, 0, 1, 0, b, d, -cubeH / 2, 0, 1, 0, b, d,  cubeH / 2, 0, 1, 0,
                     b, d,  cubeH / 2, 0, 1, 0, a, d,  cubeH / 2, 0, 1, 0, a, d, -cubeH / 2, 0, 1, 0
                 ]
-            };
+            }
             var vertices = [];
             for (var i = 0; i < h; i++) {
                 for (var j = 0; j < w; j++) {
@@ -492,17 +492,9 @@
             return new Matrix4().setLookAt(this.position.elements[0], this.position.elements[1], this.position.elements[2], this.position.elements[0] + this.front.elements[0], this.position.elements[1] + this.front.elements[1], this.position.elements[2] + this.front.elements[2], this.up.elements[0], this.up.elements[1], this.up.elements[2]);
         };
 
-        gl.enable(gl.DEPTH_TEST);
-
-        var reCreateScene;
-        var animation;
-
-        var camera = new PerspectiveCamera(45, canvas.width / canvas.height, 0.1, 100);
-        camera.position = new Vector3([(CONFIG.w - 1) * CONFIG.cubeL / 2, -(CONFIG.h - 1) * CONFIG.cubeL / 2, CONFIG.cameraPositionZ]);
-
+        var maze;
+        var ball;
         var program = new Program(document.getElementById('vertex-shader').innerText, document.getElementById('fragment-shader').innerText);
-        var maze = new Maze(program, CONFIG.w, CONFIG.h, CONFIG.cubeL, CONFIG.cubeW, CONFIG.cubeH);
-        var ball = new Ball(program, CONFIG.ballRadius);
 
         /**
          * 动画
@@ -529,6 +521,10 @@
             return true;
         };
 
+        var animation;
+        var camera = new PerspectiveCamera(45, canvas.width / canvas.height, 0.1, 100);
+        camera.position = new Vector3([(CONFIG.w - 1) * CONFIG.cubeL / 2, -(CONFIG.h - 1) * CONFIG.cubeL / 2, CONFIG.cameraPositionZ]);
+
         function loop() {
             world.Step(1 / 60, 10, 10);
             world.DrawDebugData();
@@ -545,8 +541,14 @@
             if (maze) maze.draw(camera);
             if (ball) ball.draw(camera);
             requestAnimationFrame(loop);
+        }
+
+        window.onload = function () {
+            loadData();
+            maze = new Maze(program, CONFIG.w, CONFIG.h, CONFIG.cubeL, CONFIG.cubeW, CONFIG.cubeH);
+            ball = new Ball(program, CONFIG.ballRadius);
+            loop();
         };
-        loop();
 
         window.ondevicemotion = function (e) {
             if (isNaN(parseFloat(event.accelerationIncludingGravity.x))) {
