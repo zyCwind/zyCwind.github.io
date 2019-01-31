@@ -190,7 +190,7 @@
             gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, new Uint16Array(indices));
         }
 
-        loadData();
+        window.onload = loadData;
 
         /**
          * 着色器程序
