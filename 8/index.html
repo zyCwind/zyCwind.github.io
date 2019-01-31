@@ -116,7 +116,6 @@
         }
     </script>
     <script type="text/javascript">
-    window.onload = function () {
         /**
          * 向量叉乘
          *
@@ -146,29 +145,52 @@
         var gl = canvas.getContext('webgl');
         gl.viewport(0, 0, canvas.width, canvas.height);
 
-        /**
-         * 加载资源
-         *
-         *
-         */
-        var vbo = gl.createBuffer();
-        var ballVerticesSize = 1920 * Float32Array.BYTES_PER_ELEMENT;
-        var ballIndiciesSize = 1176 * Uint16Array.BYTES_PER_ELEMENT;
-        var mazeVerticesSize = 216 * (CONFIG.w * CONFIG.h * 2 + CONFIG.w + CONFIG.h) * Float32Array.BYTES_PER_ELEMENT;
-        gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-        gl.bufferData(gl.ARRAY_BUFFER, mazeVerticesSize + ballVerticesSize, gl.STATIC_DRAW);
-        var ebo = gl.createBuffer();
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ebo);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, ballIndiciesSize, gl.STATIC_DRAW);
-        gl.activeTexture(gl.TEXTURE0);
-        var texture = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, document.getElementsByTagName('img')[0]);
-        gl.generateMipmap(gl.TEXTURE_2D);
+        var mazeVerticesSize = 216 * (CONFIG.w * CONFIG.h * 2 + 2) * Float32Array.BYTES_PER_ELEMENT;
+
+        function loadData() {
+            var vbo = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+            gl.bufferData(gl.ARRAY_BUFFER, mazeVerticesSize + 1920 * Float32Array.BYTES_PER_ELEMENT, gl.STATIC_DRAW);
+            var ebo = gl.createBuffer();
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ebo);
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, 1176 * Uint16Array.BYTES_PER_ELEMENT, gl.STATIC_DRAW);
+            gl.activeTexture(gl.TEXTURE0);
+            var texture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, document.getElementsByTagName('img')[0]);
+            gl.generateMipmap(gl.TEXTURE_2D);
+            var vertices = [];
+            var uvs = [];
+            for (var i = 0; i <= 15; i++) {
+                var v = i / 15;
+                for ( j = 0; j <= 14; j++) {
+                    var u = j / 14;
+                    var x =-Math.cos(u * Math.PI * 2) * Math.sin(v * Math.PI);
+                    var y = Math.cos(v * Math.PI);
+                    var z = Math.sin(u * Math.PI * 2) * Math.sin(v * Math.PI);
+                    vertices.push(x, y, z, x, y, z, u, 1  - v);
+                }
+            }
+            gl.bufferSubData(gl.ARRAY_BUFFER, mazeVerticesSize, new Float32Array(vertices));
+            var indices = [];
+            for (var i = 0; i < 15; i++) {
+                for (var j = 0; j < 14; j++) {
+                    var a = i * 15 + j + 1;
+                    var b = i * 15 + j;
+                    var c = (i + 1) * 15 + j;
+                    var d = (i + 1) * 15 + j + 1;
+                    if (i !== 0) indices.push(a, b, d);
+                    if (i !== 15 - 1) indices.push(b, c, d);
+                }
+            }
+            gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, new Uint16Array(indices));
+        }
+
+        loadData();
 
         /**
          * 着色器程序
@@ -326,7 +348,7 @@
             this.map[0][0] |= 0x04;
             this.map[h - 1][w - 1] |= 0x08;
             var box2DBodies = [];
-            var cube = function (x1, y1, x2, y2, box2DUserData) {
+            function cube(x1, y1, x2, y2, box2DUserData) {
                 var a = Math.min(x1, x2) - cubeW / 2;
                 var b = Math.max(x1, x2) + cubeW / 2;
                 var c = Math.min(y1, y2) - cubeW / 2;
@@ -417,44 +439,9 @@
          */
         var Ball = function (program, radius) {
             Sprite.call(this, program);
-            this.angle = 0; // 记录滚动的角度
             this.model = new Matrix4();
             this.radius = radius;
 
-            var vertices = [];
-            var uvs = [];
-            var widthSegments = 14;
-            var heightSegments = 15;
-            for (var i = 0; i <= heightSegments; i++) {
-                var v = i / heightSegments;
-                for ( j = 0; j <= widthSegments; j++) {
-                    var u = j / widthSegments;
-                    var x =-radius * Math.cos(u * Math.PI * 2) * Math.sin(v * Math.PI);
-                    var y = radius * Math.cos(v * Math.PI);
-                    var z = radius * Math.sin(u * Math.PI * 2) * Math.sin(v * Math.PI);
-                    vertices.push(x, y, z, x, y, z, u, 1  - v);
-                }
-            }
-            gl.bufferSubData(gl.ARRAY_BUFFER, mazeVerticesSize, new Float32Array(vertices));
-            var indices = [];
-            for (var i = 0; i < heightSegments; i++) {
-                for (var j = 0; j < widthSegments; j++) {
-                    var a = i * heightSegments + j + 1;
-                    var b = i * heightSegments + j;
-                    var c = (i + 1) * heightSegments + j;
-                    var d = (i + 1) * heightSegments + j + 1;
-                    if (i !== 0) indices.push(a, b, d);
-                    if (i !== heightSegments - 1) indices.push(b, c, d);
-                }
-            }
-            this.indices = new Uint16Array(indices);
-            gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, this.indices);
-
-            /**
-             * 球
-             * 
-             * 
-             */
             var bodyDef = new Box2D.Dynamics.b2BodyDef();
             bodyDef.type = Box2D.Dynamics.b2Body.b2_dynamicBody;
             bodyDef.position.Set(0, 0);
@@ -474,16 +461,7 @@
             this.program.use();
             var body = this.box2DBody.GetBody();
             var position = body.GetPosition();
-            this.model.setTranslate(position.x / 2 , -position.y / 2, 0.0);
-            if (this.prevPos) {
-                var distance = Math.sqrt(Math.pow(position.x - this.prevPos.x, 2) + Math.pow(position.y - this.prevPos.y, 2));
-                if (distance) {
-                    this.angle += distance / this.radius * 180 / Math.PI;
-                    var v = new Vector3([position.x - this.prevPos.x, this.prevPos.y - position.y, 0]).cross(new Vector3([0, 0, -1])).elements;
-                    this.model.rotate(this.angle, v[0], v[1], v[2]);
-                }
-            }
-            this.prevPos = {x: position.x, y: position.y};
+            this.model.setTranslate(position.x / 2 , -position.y / 2, 0).rotate(-position.y / this.radius * 180 / Math.PI, -1, 0, 0).rotate(position.x / this.radius * 180 / Math.PI, 0, 0, -1).scale(this.radius, this.radius, this.radius);
             this.program.setMat4('view', camera.calcView().elements);
             this.program.setMat4('projection', camera.projection.elements);
             this.program.setMat4('model', this.model.elements);
@@ -492,7 +470,7 @@
             this.program.setVertexAttribPointer('aTexCoords', 2, gl.FLOAT, false, Float32Array.BYTES_PER_ELEMENT * 8, mazeVerticesSize + Float32Array.BYTES_PER_ELEMENT * 6);
             this.program.setVec3('color', [0, 0, 0]);
             this.program.setInt1('texture', 0);
-            gl.drawElements(gl.TRIANGLES, this.indices.length, gl.UNSIGNED_SHORT, 0);
+            gl.drawElements(gl.TRIANGLES, 1176, gl.UNSIGNED_SHORT, 0);
         };
 
         Ball.prototype.destory = function () {
@@ -551,7 +529,7 @@
             return true;
         };
 
-        var loop = function () {
+        function loop() {
             world.Step(1 / 60, 10, 10);
             world.DrawDebugData();
             world.ClearForces();
@@ -577,7 +555,6 @@
             e.preventDefault();
             world.SetGravity(new Box2D.Common.Math.b2Vec2(-event.accelerationIncludingGravity.y * 30, -event.accelerationIncludingGravity.x * 30));
         };
-    };
     </script>
 </body>
 </html>
