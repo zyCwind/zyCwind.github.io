@@ -26,7 +26,7 @@
         <div style="margin-top: 10px; padding: 4px 0 0 4px;; background: rgba(0,0,0,0.2); border-radius: 4px;">
             <canvas id="canvas" width="414" height="414"></canvas>
             <canvas id="canvas-box2d" width="414" height="414" style="display: none;"></canvas>
-            <img style="display: none;" src="data:image/png;base64,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">
+            <img style="display: none;" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAYAAABccqhmAAAJY0lEQVR4Xu3c0Y3DMAwEUblZuyZX6yBVzMe+a+BAiZodykKu7/u+E/49zxP+93Pe903/v/rtf9mAFwAAQNmAANgCEAAYQHn+DwAAQNqARgAGVDZgDUAGwADK/mcA8R0YAAAAAIQrwABiAhoBjADh+c8NiAEwgLL/8wOwHgAAAAAAEK6AEcAIELafh1AMwEvA9ADWCbB+ANbrNwIYAQAwXIE6AAAAAML2Py4B4xEYAAAAAMIVYAAxAddnQPVvv4NgAAwgzD8jAANgAOkBZAAMwA+ChEewTgAAAAAAAIBsBQDQ7wFkzff/xxJwOwHX998loEvAFMAMgAGkDbieAOrfNiAGwABSADMABpA2oATcTsD1/WcADCAFMANgAGkDrieA+rcNiAEwgBTADIABpA0oAbcTcH3/GQADSAHMABhA2oDrCaD+bQNiAAwgBTADYABpA0rA7QRc338GwABSADMABpA24HoCqH/bgBgAA0gBzAAYQNqAEnA7Adf3nwEwgBTADIABpA24ngDq3zYgBsAAUgAzAAaQNqAE3E7A9f1nAAwgBTADYABpA64ngPq3DYgBMIAUwAyAAaQNKAG3E3B9/xkAA0gBzAAYQNqA6wmg/m0DYgAMIAUwA2AAaQNKwO0EXN9/BsAAUgAzAAaQNuB6Aqh/24AYAANIAcwAGEDagBJwOwHX958BMIAUwAyAAaQNuJ4A6t82IAbAAFIAMwAGkDagBNxOwPX9ZwAMIAUwA2AAaQOuJ4D6tw2IATCAFMAMgAGkDSgBtxNwff8ZAANIAcwAGEDagOsJoP5tA2IADCAFMANgAGkDSsDtBFzffwbAAFIAMwAGkDbgegKof9uAGAADSAHMABhA2oAScDsB1/efATCAFMAMgAGkDbieAOrfNiAGwABSADMABpA2oATcTsD1/WcADCAFMANgAGkDrieA+rcNiAEwgBTADIABpA0oAbcTcH3/GQADSAHMABhA2oDrCaD+bQNiAAwgBTADYABpA0rA7QRc338GwABSADMABpA24HoCqH/bgBgAA0gBzAAYQNqAEnA7Adf3nwEwgBTADIABpA24ngDq3zYgBsAAUgAzAAaQNqAE3E7A9f1nAAwgBTADYABpA64ngPq3DYgBMIAUwAyAAaQNKAG3E3B9/xkAA0gBzAAYQNqA6wmg/m0DYgAMIAUwA2AAaQNKwO0EXN9/BsAAUgAzAAaQNuB6Aqh/24AYAANIAcwAGEDagBJwOwHX958BMIAUwAyAAaQNuJ4A6t82IAbAAFIAMwAGkDagBNxOwPX9ZwAMIAUwA2AAaQOuJ4D6tw2IATCAFMAMgAGkDSgBtxNwff8ZAANIAcwAGEDagOsJoP5tA2IADCAFMANgAGkDSsDtBFzffwbAAFIAMwAGkDbgegKof9uAGAADSAHMABhA2oAScDsB1/efATCAFMAMgAGkDbieAOrfNiAGwABSADMABpA2oATcTsD1/WcADCAFMANgAGkDrieA+rcNiAEwgBTADIABpA0oAbcTcH3/GQADSAHMABhA2oDrCaD+bQNiAAwgBTADYABpA0rA7QRc3//rvu+vPIHrG6B+ACrPHwA8rYIBAAAAQLgCZlAADNvv1AHAABhA2f/5AVgPAAAAAAAIV4AB+AwXtt856wm4Xj8DYAApgOoEBACfAR2AcAUAoP0KwgAYQHj8j0vAeAQGAAAAgHAFagMCAAAI258BAECsQOuXQOrffgjFABgAAwhXgAEwgLD9vANYNyAGwABSANUJCADeATgA4QoAgHcAYftR4PUEXK/fCGAESAHMABhA2oDrCaB+nwH9JFiIIAnYJuA6AI0ARoAQf14C1gEAAAAAAOEKAICHQGH7+QpiBPAOID2AdQKsH4D1+o0ARgAADFegDgAAAICw/V0CAoA7gPQArivwev0MgAGkAKoTEABcAjoA4QoAQPsQigEwgPD4uwOoAQgAAAAA4QoAgEvAsP08BHIH4A4gPYB1AqwfgPX6jQBGAAAMV6AOAAAAgLD9XQICgDuA9ACuK/B6/QyAAaQAqhMQAFwCOgDhCgCAh0Bh+/kMtp6A6/UbAYwAKYAZAANIG3A9AdTvV4H9KnCIIAnYJuA6AI0ARoAQf94B1AEAAAAAAOEKAICHQGH7+QpiBPAOID2AdQKsH4D1+o0ARgAADFegDgAAAICw/V0CAoA7gPQArivwev0MgAGkAKoTEABcAjoA4QoAQPsQigEwgPD4uwOoAQgAAAAA4QoAgEvAsP08BHIH4A4gPYB1AqwfgPX6jQBGAAAMV6AOAAAAgLD9XQICgDuA9ACuK/B6/QyAAaQAqhMQAFwCOgDhCgCAh0Bh+/kMtp6A6/UbAYwAKYAZAANIG3A9AdTvV4H9KnCIIAnYJuA6AI0ARoAQf94B1AEAAAAAAOEKAICHQGH7+QpiBPAOID2AdQKsH4D1+o0ARgAADFegDgAAAICw/V0CAoA7gPQArivwev0MgAGkAKoTEABcAjoA4QoAQPsQigEwgPD4uwOoAQgAAAAA4QoAgEvAsP08BHIH4A4gPYB1AqwfgPX6jQBGAAAMV6AOAAAAgLD9XQICgDuA9ACuK/B6/QyAAaQAqhMQAFwCOgDhCgCAh0Bh+/kMtp6A6/UbAYwAKYAZAANIG3A9AdTvV4H9KnCIIAnYJuA6AI0ARoAQf94B1AEAAAAAAOEKAICHQGH7+QpiBPAOID2AdQKsH4D1+o0ARgAADFegDgAAAICw/V0CAoA7gPQArivwev0MgAGkAKoTEABcAjoA4QoAQPsQigEwgPD4uwOoAQgAAAAA4QoAgEvAsP08BHIH4A4gPYB1AqwfgPX6jQBGAAAMV6AOAAAAgLD9XQICgDuA9ACuK/B6/QyAAaQAqhMQAFwCOgDhCgCAh0Bh+/kMtp6A6/UbAYwAKYAZAANIG3A9AdTvV4H9KnCIIAnYJuA6AI0ARoAQf94B1AEAAAAAAOEKAICHQGH7+QpiBPAOID2AdQKsH4D1+o0ARgAADFegDgAAAICw/V0CAoA7gPQArivwev0MgAGkAKoTEABcAjoA4QoAQPsQigEwgPD4uwOoAQgAAAAA4QoAgEvAsP08BHIH4A4gPYB1AqwfgPX6jQBGAAAMV6AOAAAAgLD9XQICgDuA9ACuK/B6/QyAAaQAqhMQAFwCOgDhCgCAh0Bh+/kMtp6A6/UbAYwAKYAZQGsAP6yQmERBjos2AAAAAElFTkSuQmCC">
         </div>
         <div style="margin-top: 10px;">
             <div style="color: #999; font-size: 12px;">注:需要配合手机重力感应运行,需要浏览器 webgl 功能支持</div>
@@ -106,7 +106,7 @@
 
         void main() {
             vec3 dir = vec3(0.5, 0.5, -1);
-            vec3 lightColor = vec3(1, 1, 1);
+            vec3 lightColor = vec3(1, 1, 0.8);
             vec3 diffuse = max(dot(normalize(Normal), normalize(-dir)), 0.0) * lightColor;
             vec3 rColor = color;
             if (color == vec3(0, 0, 0)) {
@@ -132,12 +132,12 @@
         };
 
         var CONFIG = {
-            w: 12,
-            h: 12,
+            w: 15,
+            h: 15,
             cubeL: 1,
             cubeW: 0.2,
             cubeH: 1,
-            cameraPositionZ: 16,
+            cameraPositionZ: 20,
             ballRadius: 0.3
         };
 
@@ -151,10 +151,10 @@
         function loadData() {
             var vbo = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-            gl.bufferData(gl.ARRAY_BUFFER, mazeVerticesSize + 1920 * Float32Array.BYTES_PER_ELEMENT, gl.STATIC_DRAW);
+            gl.bufferData(gl.ARRAY_BUFFER, mazeVerticesSize + 1224 * Float32Array.BYTES_PER_ELEMENT, gl.STATIC_DRAW);
             var ebo = gl.createBuffer();
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ebo);
-            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, 1176 * Uint16Array.BYTES_PER_ELEMENT, gl.STATIC_DRAW);
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, 672 * Uint16Array.BYTES_PER_ELEMENT, gl.STATIC_DRAW);
             gl.activeTexture(gl.TEXTURE0);
             var texture = gl.createTexture();
             gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -166,10 +166,10 @@
             gl.generateMipmap(gl.TEXTURE_2D);
             var vertices = [];
             var uvs = [];
-            for (var i = 0; i <= 15; i++) {
-                var v = i / 15;
-                for ( j = 0; j <= 14; j++) {
-                    var u = j / 14;
+            for (var i = 0; i <= 8; i++) {
+                var v = i / 8;
+                for ( j = 0; j <= 16; j++) {
+                    var u = j / 16;
                     var x =-Math.cos(u * Math.PI * 2) * Math.sin(v * Math.PI);
                     var y = Math.cos(v * Math.PI);
                     var z = Math.sin(u * Math.PI * 2) * Math.sin(v * Math.PI);
@@ -178,14 +178,14 @@
             }
             gl.bufferSubData(gl.ARRAY_BUFFER, mazeVerticesSize, new Float32Array(vertices));
             var indices = [];
-            for (var i = 0; i < 15; i++) {
-                for (var j = 0; j < 14; j++) {
-                    var a = i * 15 + j + 1;
-                    var b = i * 15 + j;
-                    var c = (i + 1) * 15 + j;
-                    var d = (i + 1) * 15 + j + 1;
+            for (var i = 0; i < 8; i++) {
+                for (var j = 0; j < 16; j++) {
+                    var a = i * 17 + j + 1;
+                    var b = i * 17 + j;
+                    var c = (i + 1) * 17 + j;
+                    var d = (i + 1) * 17 + j + 1;
                     if (i !== 0) indices.push(a, b, d);
-                    if (i !== 15 - 1) indices.push(b, c, d);
+                    if (i !== 7) indices.push(b, c, d);
                 }
             }
             gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, new Uint16Array(indices));
@@ -470,7 +470,7 @@
             this.program.setVertexAttribPointer('aTexCoords', 2, gl.FLOAT, false, Float32Array.BYTES_PER_ELEMENT * 8, mazeVerticesSize + Float32Array.BYTES_PER_ELEMENT * 6);
             this.program.setVec3('color', [0, 0, 0]);
             this.program.setInt1('texture', 0);
-            gl.drawElements(gl.TRIANGLES, 1176, gl.UNSIGNED_SHORT, 0);
+            gl.drawElements(gl.TRIANGLES, 672, gl.UNSIGNED_SHORT, 0);
         };
 
         Ball.prototype.destory = function () {
@@ -555,7 +555,8 @@
                 return ;
             }
             e.preventDefault();
-            world.SetGravity(new Box2D.Common.Math.b2Vec2(-event.accelerationIncludingGravity.y * 30, -event.accelerationIncludingGravity.x * 30));
+            var sign = Math.sign(event.accelerationIncludingGravity.z);
+            world.SetGravity(new Box2D.Common.Math.b2Vec2(sign * event.accelerationIncludingGravity.y * 30, sign * event.accelerationIncludingGravity.x * 30));
         };
     </script>
 </body>
